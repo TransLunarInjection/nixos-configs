@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, flakeArgs, ... }:
 let
   name = "hisame";
   swap = "/dev/disk/by-partlabel/hisame_swap";
@@ -26,10 +26,6 @@ let
   };
 in
 {
-  imports = [
-    # flakeArgs.kde2nix.nixosModules.default
-  ];
-
   config = {
     networking.hostName = "lun-${name}-nixos";
     sconfig.machineId = "63d3399d2f2f65c96848f11d73082aef";
@@ -181,35 +177,31 @@ in
     #   ];
     # };
     services.xserver.desktopManager.plasma5.enable = lib.mkForce false;
-    services.xserver.desktopManager.plasma6.enable = true;
-    services.xserver.desktopManager.cosmic.enable = true;
+    services.desktopManager.plasma6.enable = true;
     system.forbiddenDependenciesRegex = "breeze-qt5";
     specialisation.nvk.configuration = {
       lun.nvk.enable = true;
     };
     specialisation.cosmic.configuration = {
       lun.nvk.enable = true;
-      services.xserver.displayManager.cosmic-greeter.enable = true;
-      services.xserver.displayManager.sddm.enable = lib.mkForce false;
-      services.xserver.desktopManager.cosmic.enable = true;
-      environment.systemPackages = [
-        pkgs.pop-launcher
-        pkgs.cosmic-greeter
-        pkgs.cosmic-applibrary
-        pkgs.cosmic-launcher
+
+      imports = [
+        flakeArgs.nixos-cosmic.nixosModules.default
       ];
+
+      services.displayManager.cosmic-greeter.enable = true;
+      services.xserver.displayManager.sddm.enable = lib.mkForce false;
+      services.desktopManager.cosmic.enable = true;
       security.pam.services.cosmic-greeter = { };
     };
     specialisation.cosmic-nvidia-proprietary.configuration = {
-      services.xserver.displayManager.cosmic-greeter.enable = true;
-      services.xserver.displayManager.sddm.enable = lib.mkForce false;
-      services.xserver.desktopManager.cosmic.enable = true;
-      environment.systemPackages = [
-        pkgs.pop-launcher
-        pkgs.cosmic-greeter
-        pkgs.cosmic-applibrary
-        pkgs.cosmic-launcher
+      imports = [
+        flakeArgs.nixos-cosmic.nixosModules.default
       ];
+
+      services.displayManager.cosmic-greeter.enable = true;
+      services.xserver.displayManager.sddm.enable = lib.mkForce false;
+      services.desktopManager.cosmic.enable = true;
       security.pam.services.cosmic-greeter = { };
     };
 

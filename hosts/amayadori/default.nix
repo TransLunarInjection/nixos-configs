@@ -88,9 +88,9 @@ in
       flakeArgs.nixos-cosmic.nixosModules.default
     ];
 
-    services.xserver.displayManager.cosmic-greeter.enable = true;
+    services.displayManager.cosmic-greeter.enable = true;
     services.xserver.displayManager.sddm.enable = lib.mkForce false;
-    services.xserver.desktopManager.cosmic.enable = true;
+    services.desktopManager.cosmic.enable = true;
     security.pam.services.cosmic-greeter = { };
   };
 }
