@@ -46,7 +46,7 @@ in
     services.ssh-agent.enable = true;
 
     systemd.user.services.ssh-agent-add-keys = {
-      Install.WantedBy = [ "default.target" ];
+      Install.WantedBy = [ "graphical-session.target" ];
       Unit.Wants = [ "ssh-agent.service" ];
       Service.ExecStart = "${lib.getExe sshAddDefault}";
     };
