@@ -1,4 +1,21 @@
-{ pkgs, flakeArgs, ... }:
+{ pkgs, lib, flakeArgs, ... }:
+let
+  sshAddDefault = pkgs.writeShellApplication {
+    name = "sshAddDefault";
+    text = ''
+      [[ -d ~/.ssh ]] || exit 0
+      if [[ -z "''${SSH_AUTH_SOCK:-}" ]]; then
+        export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/ssh-agent
+      fi
+      cd ~/.ssh
+      for file in id_*; do
+        if ! [[ $file =~ .*\.pub$ ]]; then
+          ssh-add "$file"
+        fi
+      done
+    '';
+  };
+in
 {
   config = {
     home.packages = with pkgs; [
@@ -28,18 +45,10 @@
 
     services.ssh-agent.enable = true;
 
-    home.sessionVariablesExtra = ''
-      if [[ -z "$SSH_AUTH_SOCK" ]]; then
-        export SSH_AUTH_SOCK=$XDG_RUNTIME_DIR/ssh-agent
-      fi
-
-      pushd ~/.ssh
-      for file in id_*; do
-        if [[ $file != *.pub ]]; then
-          ssh-add "$file"
-        fi
-      done
-      popd
-    '';
+    systemd.user.services.ssh-agent-add-keys = {
+      Install.WantedBy = [ "default.target" ];
+      Unit.Wants = [ "ssh-agent.service" ];
+      Service.ExecStart = "${lib.getExe sshAddDefault}";
+    };
   };
 }
