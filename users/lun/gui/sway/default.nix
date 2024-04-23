@@ -36,6 +36,9 @@ in
 
   wayland.windowManager.sway = {
     enable = true;
+    # https://github.com/nix-community/home-manager/issues/5311
+    # custom wallpaper breaks checkConfig
+    checkConfig = false;
     # Use system sway
     package = null;
     config = {
