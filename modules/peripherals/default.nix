@@ -1,5 +1,7 @@
 { config, pkgs, lib, ... }:
-{
+let crPackages = [ pkgs.framesh ];
+
+in {
   config = lib.mkMerge [
     {
       services.fwupd.enable = true;
@@ -31,8 +33,8 @@
       hardware.ledger.enable = true;
 
       # udev rules and package for vial keyboard remapper
-      services.udev.packages = [ pkgs.lun.vial.udev-rule-vial-serial ];
-      environment.systemPackages = [ pkgs.lun.vial pkgs.barrier pkgs.openssl ];
+      services.udev.packages = [ pkgs.lun.vial.udev-rule-vial-serial ] ++ crPackages;
+      environment.systemPackages = [ pkgs.lun.vial pkgs.barrier pkgs.openssl ] ++ crPackages;
 
       programs.noisetorch.enable = true;
       networking.firewall.allowedTCPPorts = [ 24800 ];
