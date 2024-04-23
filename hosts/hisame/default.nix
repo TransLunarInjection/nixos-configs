@@ -182,6 +182,9 @@ in
     specialisation.nvk.configuration = {
       lun.nvk.enable = true;
     };
+    specialisation.nvidia-beta.configuration = {
+      hardware.nvidia.package = lib.mkForce config.boot.kernelPackages.nvidiaPackages.beta;
+    };
     specialisation.cosmic.configuration = {
       lun.nvk.enable = true;
 
