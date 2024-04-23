@@ -78,6 +78,7 @@ let
   # This is mostly due to depending on pkgs.pkgsi686Linux to evaluate
   (lib.optionalAttrs (pkgs.system == "x86_64-linux") {
     # FIXME: this is upstreamed?
+    tabby = pkgs.callPackage ./tabby { };
     wowup = pkgs.callPackage ./wowup { };
     lutris = pkgs.lutris.override {
       extraLibraries = pkgs: with pkgs; [
