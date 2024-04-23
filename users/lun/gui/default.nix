@@ -18,7 +18,7 @@
   ];
 
   config = {
-    home.environmentVariables = {
+    home.sessionVariables = {
       GTK_DEBUG = "portals";
       GTK_USE_PORTAL = "1";
     };
