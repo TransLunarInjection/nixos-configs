@@ -5,7 +5,7 @@
       nix-output-monitor
       glxinfo
       vulkan-tools
-      # nixd # FIXME: relies on "nix-2.17.1" which is marked insecure
+      nixd
       rehex
       imhex
       meld # graphical diff, lets you paste in pretty easily
