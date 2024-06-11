@@ -178,7 +178,6 @@ in
     # };
     services.xserver.desktopManager.plasma5.enable = lib.mkForce false;
     services.desktopManager.plasma6.enable = true;
-    system.forbiddenDependenciesRegex = "breeze-qt5";
     specialisation.nvk.configuration = {
       lun.nvk.enable = true;
     };
