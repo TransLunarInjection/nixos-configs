@@ -38,7 +38,8 @@
 
     # NIX
     nix = {
-      package = pkgs.nixVersions.nix_2_16; # FIXME: revert after https://github.com/NixOS/nix/issues/9052
+      # Trying out Lix, was previously pinned to nix 2.16 due to bugs in newer versions
+      # package = pkgs.nixVersions.nix_2_16; # FIXME: revert after https://github.com/NixOS/nix/issues/9052
       daemonCPUSchedPolicy = "idle";
       extraOptions = lib.mkMerge [
         "experimental-features = nix-command flakes"
