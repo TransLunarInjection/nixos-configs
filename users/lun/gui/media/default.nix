@@ -4,7 +4,9 @@ let
   mpv = pkgs.wrapMpv mpv-unwrapped { };
 in
 {
-  config = lib.mkIf (pkgs.system == "x86_64-linux") {
+  # https://github.com/NixOS/nixpkgs/issues/295429
+  # disabled for now :(
+  config = lib.mkIf (pkgs.system == "!!x86_64-linux") {
     home.packages = [ mpv ] ++ (with pkgs; [
       vlc
       smplayer
