@@ -1,7 +1,8 @@
 { config, pkgs, lib, ... }:
-let crPackages = [ pkgs.framesh ];
-
-in {
+let
+  crPackages = lib.optionals pkgs.stdenv.hostPlatform.isx86 [ pkgs.framesh ];
+in
+{
   config = lib.mkMerge [
     {
       services.fwupd.enable = true;
