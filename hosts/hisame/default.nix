@@ -181,9 +181,6 @@ in
     specialisation.nvk.configuration = {
       lun.nvk.enable = true;
     };
-    specialisation.nvidia-beta.configuration = {
-      hardware.nvidia.package = lib.mkForce config.boot.kernelPackages.nvidiaPackages.beta;
-    };
     specialisation.cosmic.configuration = {
       lun.nvk.enable = true;
 
@@ -306,6 +303,7 @@ in
     hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.production;
     hardware.nvidia.modesetting.enable = true;
     hardware.nvidia.powerManagement.enable = true;
+    boot.kernelModules = [ "nvidia_uvm" ];
     # hardware.nvidia.powerManagement.finegrained = true;
     lun.ml = {
       enable = false; # FIXME: rocm https://github.com/NixOS/nixpkgs/issues/203949
