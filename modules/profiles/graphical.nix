@@ -44,7 +44,6 @@
     # GRAPHICS ACCEL
     hardware.opengl = {
       enable = true;
-      driSupport = true;
       driSupport32Bit = lib.mkForce (pkgs.system == "x86_64-linux");
     };
 
