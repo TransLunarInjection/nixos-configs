@@ -27,17 +27,16 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1703599984,
-        "narHash": "sha256-FVBwlct4Ezax1XIocYUDGzojEdx9YQ+KPRKOSvEyyyY=",
+        "lastModified": 1703900733,
+        "narHash": "sha256-S+n4uA9weJf5EubUMFW64JFisAnC8Wj+UVkx+PuVwEk=",
         "owner": "Fundament-Software",
         "repo": "alicorn-vscode-extension",
-        "rev": "da203e1ab2061463c5fe40e04e82397796ba4bed",
+        "rev": "f7dde8c42e73b7c1805a12db95c4a2be82057eb2",
         "type": "github"
       },
       "original": {
         "owner": "Fundament-Software",
         "repo": "alicorn-vscode-extension",
-        "rev": "da203e1ab2061463c5fe40e04e82397796ba4bed",
         "type": "github"
       }
     },
@@ -126,11 +125,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1720143585,
-        "narHash": "sha256-OelAaxjIw6vkxxgkb0yFAtMzYUK7XSN4GBUaoruCDfM=",
+        "lastModified": 1720144502,
+        "narHash": "sha256-nSHggVRuqtFsAyvG6+nXE7O1wQvtqclUNQTqXUEnsFY=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "90d89e8cffc7f41e3d9a063dd6d0c0984728cf2d",
+        "rev": "19212150460a6e07993b58e20b215a71a50fd04b",
         "type": "github"
       },
       "original": {
@@ -688,11 +687,11 @@
         "nixpkgs-stable": "nixpkgs-stable_3"
       },
       "locked": {
-        "lastModified": 1720142587,
-        "narHash": "sha256-Rq8SULM4UyfpeXRYgGD6FN1tJupat8PnaZ40gPXSqDs=",
+        "lastModified": 1720144425,
+        "narHash": "sha256-02mQdvlupZUZ80IphJyO10aT0uqQjYSZdync20Qqyw0=",
         "owner": "lilyinstarlight",
         "repo": "nixos-cosmic",
-        "rev": "bf3b31565071b18813e9378909cf656bd814ad27",
+        "rev": "a55396a8f07a1d64eae923cf223aaa772329e316",
         "type": "github"
       },
       "original": {
@@ -1190,11 +1189,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1720059535,
-        "narHash": "sha256-h/O3PoV3KvQG4tC5UpANBZOsptAZCzEGiwyi+3oSpYc=",
+        "lastModified": 1720145907,
+        "narHash": "sha256-mNO3vfM43+w4Bp+zMC8Dkf4ktLpYYRpk9tAOp4iumio=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "8deeed2dfa21837c7792b46b6a9b2e73f97b472b",
+        "rev": "5ad2d5884b9b16319c9c5ca4e80a5b8606b083ae",
         "type": "github"
       },
       "original": {
