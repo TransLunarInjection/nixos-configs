@@ -35,11 +35,6 @@
       url = "git+https://git@git.lix.systems/lix-project/lix";
       flake = false;
     };
-    lix-module = {
-      url = "git+https://git.lix.systems/lix-project/nixos-module";
-      inputs.lix.follows = "lix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     kde2nix = {
       url = "github:nix-community/kde2nix/main";
       # currently uses special branch
