@@ -17,7 +17,6 @@
     erosanix.url = "github:emmanuelrosa/erosanix";
     erosanix.inputs.nixpkgs.follows = "nixpkgs";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    rust-overlay.inputs.flake-utils.follows = "flake-utils";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     thoth-reminder-bot.url = "github:mmk150/reminder_bot";
     thoth-reminder-bot.inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +32,7 @@
     emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
     emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     lix = {
-      url = "git+https://git@git.lix.systems/lix-project/lix?ref=refs/tags/2.90-beta.1";
+      url = "git+https://git@git.lix.systems/lix-project/lix";
       flake = false;
     };
     lix-module = {
