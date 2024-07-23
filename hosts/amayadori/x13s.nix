@@ -6,15 +6,15 @@ let
   useGrub = false;
   inherit (config.lun.x13s) useGpu;
   useGpuFw = config.lun.x13s.useGpu;
-  kernelVersion = "6.7.5";
+  kernelVersion = "6.9.10";
   dtbName = "x13s${kernelVersion}.dtb";
   modDirVersion = "${kernelVersion}";
   kernelSrc = {
     owner = "steev";
     repo = "linux";
     version = kernelVersion;
-    rev = "45411854bb931cb5c989e00ded127d4fc68dfa01";
-    hash = "sha256-2FSsuKEl+KTYmiDtgCbxHS7y8Qz+Y1zkRuRcWWE0iqc=";
+    rev = "259251ae5050a837ca7be8228f2280d0932bcfba";
+    hash = "sha256-wA+7/H6hs2TTUNCRVJGy3F9a6kzuOffzG8x+6qufryQ=";
   };
   # Hacky workaround which mounts an updated alsa-ucm-confs package over the original nix store version
   # Upgrading properly rebuilds the world and I don't have a fast enough system for that.
@@ -64,7 +64,7 @@ let
         SND_USB_AUDIO_USE_MEDIA_CONTROLLER = Y;
         # linux> ../drivers/media/i2c/ar1337.c: In function 'ar1337_get_fmt':
         # linux> ../drivers/media/i2c/ar1337.c:349:68: error: passing argument 2 of 'v4l2_subdev_get_pad_format' from incompatible pointer type [-Werror=incompatible-pointer-types]
-        VIDEO_AR1337 = N;
+        # VIDEO_AR1337 = N;
       } // lib.optionalAttrs kernelPdMapper {
         QCOM_PD_MAPPER = M;
         QRTR = M;
@@ -98,13 +98,12 @@ let
   dtb = "${linuxPackages_x13s.kernel}/dtbs/qcom/sc8280xp-lenovo-thinkpad-x13s.dtb";
   inherit (config.boot.loader) efi;
 
-  # nurl https://github.com/kvalo/ath11k-firmware
-  ath11k_fw_src = pkgs.fetchFromGitHub {
+  # nurl https://git.codelinaro.org/clo/ath-firmware/ath11k-firmware.git
+  ath11k_fw_src = pkgs.fetchgit {
     name = "ath11k-firmware-src";
-    owner = "kvalo";
-    repo = "ath11k-firmware";
-    rev = "5f72c2124a9b29b9393fb5e8a0f2e0abb130750f";
-    hash = "sha256-l7tAxG7udr7gRHZuXRQNzWKtg5JJS+vayk44ZmisfKg=";
+    url = "https://git.codelinaro.org/clo/ath-firmware/ath11k-firmware.git";
+    rev = "bb527dcebac835c47ed4f5428a7687769fa9b1b2";
+    hash = "sha256-p6ifwtRNUOyQ2FN2VhSXS6dcrvrtiFZawu/iVXQ4uR0=";
   };
 
   x13s-tplg = pkgs.fetchgit {
@@ -238,15 +237,18 @@ in
       ((pkgs.mesa.override {
         galliumDrivers = [ "swrast" "freedreno" "zink" ];
         vulkanDrivers = [ "swrast" "freedreno" ];
-        enableGalliumNine = false;
-        enableOSMesa = false;
-        enableOpenCL = false;
       }).overrideAttrs (old: {
         mesonFlags = old.mesonFlags ++ [
-          "-Dgallium-vdpau=false"
-          "-Dgallium-va=false"
+          "-Dgallium-vdpau=disabled"
+          "-Dgallium-va=disabled"
           "-Dandroid-libbacktrace=disabled"
         ];
+        postPatch = ''
+          ${old.postPatch}
+
+          mkdir -p $spirv2dxil
+          touch $spirv2dxil/dummy
+        '';
       })).drivers;
     services.logind.extraConfig = ''
       HandlePowerKey=suspend
