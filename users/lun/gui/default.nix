@@ -46,7 +46,7 @@
       calibre
       (flakeArgs.plover-flake.packages.${pkgs.system}.plover.with-plugins
         (ps: with ps; [
-          plover_console_ui
+          plover-console-ui
         ])
       )
       ark
