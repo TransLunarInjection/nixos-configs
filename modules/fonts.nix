@@ -57,6 +57,26 @@ in
             <string>iosevka</string>
           </edit>
         </match>
+         <match target="font">
+          <edit mode="assign" name="rgba">
+          <const>none</const>
+          </edit>
+        </match>
+        <match target="font">
+          <edit mode="assign" name="hinting">
+          <bool>true</bool>
+          </edit>
+        </match>
+        <match target="font">
+          <edit mode="assign" name="hintstyle">
+          <const>hintfull</const>
+          </edit>
+        </match>
+        <match target="font">
+          <edit mode="assign" name="antialias">
+          <bool>true</bool>
+          </edit>
+        </match>
       </fontconfig>
     '';
   };
