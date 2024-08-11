@@ -36,11 +36,33 @@ let
   # vpnInterfaces = [ ];
   #lanBridge = "br0.lan";
   swap = "/dev/disk/by-partlabel/${name}_swap";
-  nixos-cake = pkgs.runCommand "nixos-cake" { } ''
-    mkdir -p $out/bin
-    cp ${./nixos-cake.sh} $out/bin/nixos-cake
-    chmod +x $out/bin/nixos-cake
-  '';
+  resholvCfg = {
+    inputs = with pkgs; [
+      coreutils
+      bash
+      findutils
+      gnugrep
+      curl
+      jq
+      iproute2
+      gawk
+      procps
+    ];
+    interpreter = "${pkgs.bash}/bin/bash";
+    execer = [
+      # See https://github.com/abathur/resholve/issues/77
+      "cannot:${pkgs.borgbackup}/bin/borg"
+      "cannot:${pkgs.iproute2}/bin/ip"
+      "cannot:${pkgs.iproute2}/bin/tc"
+    ];
+    fake.external = [ "sudo" ];
+  };
+  nixos-cake = pkgs.resholve.writeScriptBin "nixos-cake" resholvCfg (builtins.readFile ./nixos-cake.sh);
+  # nixos-cake = pkgs.runCommand "nixos-cake" { } ''
+  #   mkdir -p $out/bin
+  #   cp ${./nixos-cake.sh} $out/bin/nixos-cake
+  #   chmod +x $out/bin/nixos-cake
+  # '';
 in
 {
   imports = [
@@ -84,10 +106,6 @@ in
         allowedTCPPorts = [ ];
         allowedUDPPortRanges = [ ];
         allowedTCPPortRanges = [ ];
-        firewall.extraCommands = ''
-          echo "nixos-cake apply"
-          ${lib.getExe nixos-cake} || true
-        '';
       };
       # not sure whether to use a bridge
       # bridges."${lanBridge}" = {
@@ -325,10 +343,21 @@ in
 
       startAt = "*-*-* 06:00:00";
     };
+    systemd.services.apply-nixos-cake = {
+      description = "Apply nixos-cake";
 
-    # spin down hdds
+      serviceConfig = {
+        type = "oneshot";
+        ExecStart = "${pkgs.bash}/bin/bash ${lib.getExe nixos-cake}";
+      };
+
+      startAt = "*-*-* *:05:00";
+    };
+
+    # spin down hdds and apply cake
     powerManagement.powerUpCommands = with pkgs;''
       ${bash}/bin/bash -c "${hdparm}/bin/hdparm -S 9 -B 127 $(${utillinux}/bin/lsblk -dnp -o name,rota |${gnugrep}/bin/grep \'.*\\s1\'|${coreutils}/bin/cut -d \' \' -f 1)"
+      ${bash}/bin/bash -c "bash ${lib.getExe nixos-cake} || true"
     '';
 
     boot.kernelModules = [ "tcp_bbr" "sch_cake" ];

@@ -5,11 +5,15 @@
 # Tolga Erok
 # 11-06-2024
 
+if [ "$EUID" -ne 0 ]; then
+	exec sudo bash "$0"
+fi
+
 apply_cake_qdisc() {
 	local interface="$1"
 	echo "Configuring interface $interface..."
 	# FIXME: hardcoded bw limit because 10gbe nic + 10g rj45 -> 1gbps link reports 10gbe rate
-	if sudo tc qdisc replace dev "$interface" root cake bandwidth 900Mbit; then
+	if tc qdisc replace dev "$interface" root cake bandwidth 900Mbit; then
 		echo "Successfully configured CAKE qdisc on $interface."
 	else
 		echo "Failed to configure CAKE qdisc on $interface."
@@ -31,9 +35,9 @@ done
 # Update sysctl.conf if necessary
 sysctl_conf="/etc/sysctl.conf"
 if ! grep -qxF 'net.core.default_qdisc = cake' "$sysctl_conf"; then
-	echo 'net.core.default_qdisc = cake' | sudo tee -a "$sysctl_conf"
+	echo 'net.core.default_qdisc = cake' | tee -a "$sysctl_conf"
 	echo "Added net.core.default_qdisc = cake to $sysctl_conf."
-	sudo sysctl -p
+	sysctl -p
 fi
 
 # Verify qdisc configuration for each interface
@@ -41,11 +45,11 @@ for interface in $interfaces; do
 	echo "----------------------------------------------"
 	echo "Verifying qdisc configuration for $interface: "
 	echo "----------------------------------------------"
-	if sudo tc qdisc show dev "$interface" | tee /dev/stderr | grep -q 'cake'; then
+	if tc qdisc show dev "$interface" | tee /dev/stderr | grep -q 'cake'; then
 		echo "CAKE qdisc is active on $interface."
 	else
 		echo "CAKE qdisc is NOT active on $interface."
 	fi
 done
 
-sudo sysctl -p
+sysctl -p
