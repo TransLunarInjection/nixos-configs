@@ -36,6 +36,11 @@ let
   # vpnInterfaces = [ ];
   #lanBridge = "br0.lan";
   swap = "/dev/disk/by-partlabel/${name}_swap";
+  nixos-cake = pkgs.runCommand "nixos-cake" { } ''
+    mkdir -p $out/bin
+    cp ${./nixos-cake.sh} $out/bin/nixos-cake
+    chmod +x $out/bin/nixos-cake
+  '';
 in
 {
   imports = [
@@ -79,6 +84,10 @@ in
         allowedTCPPorts = [ ];
         allowedUDPPortRanges = [ ];
         allowedTCPPortRanges = [ ];
+        firewall.extraCommands = ''
+          echo "nixos-cake apply"
+          ${lib.getExe nixos-cake} || true
+        '';
       };
       # not sure whether to use a bridge
       # bridges."${lanBridge}" = {
@@ -322,10 +331,20 @@ in
       ${bash}/bin/bash -c "${hdparm}/bin/hdparm -S 9 -B 127 $(${utillinux}/bin/lsblk -dnp -o name,rota |${gnugrep}/bin/grep \'.*\\s1\'|${coreutils}/bin/cut -d \' \' -f 1)"
     '';
 
-    boot.kernelModules = [ "tcp_bbr" ];
+    boot.kernelModules = [ "tcp_bbr" "sch_cake" ];
     boot.kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = lib.mkForce "bbr"; # apparently this works for ipv6 too
-      "net.core.default_qdisc" = lib.mkForce "fq_codel"; # FIXME doesn't apply to all nics, set too late in boot?
+      "net.core.default_qdisc" = lib.mkForce "cake"; # FIXME doesn't apply to all nics, set too late in boot?
+      "net.netfilter.nf_conntrack_buckets" = 65536;
+      "net.netfilter.nf_conntrack_tcp_timeout_established" = 7200; # 2 hours
+      # "net.netfilter.nf_conntrack_max" = 1048576;
+      "net.netfilter.nf_conntrack_generic_timeout" = 60;
+      "net.netfilter.nf_conntrack_tcp_timeout_time_wait" = 60;
+      "net.netfilter.nf_conntrack_tcp_timeout_fin_wait" = 60;
+      "net.netfilter.nf_conntrack_tcp_timeout_unacknowledged" = 60;
+      "net.netfilter.nf_conntrack_tcp_timeout_syn_sent" = 60;
+      "net.netfilter.nf_conntrack_icmp_timeout" = 15;
+      "net.netfilter.nf_conntrack_icmpv6_timeout" = 15;
     };
 
     hardware.cpu.amd.updateMicrocode = true;
@@ -370,6 +389,8 @@ in
           ProtectHome = true;
         };
       };
+
+    environment.systemPackages = [ nixos-cake pkgs.netsniff-ng pkgs.ethtool pkgs.iftop ];
 
     lun.persistence.enable = true;
     fileSystems = {
