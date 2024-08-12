@@ -17,7 +17,7 @@ in
     }
 
     (lib.mkIf config.lun.profiles.graphical {
-      services.xserver.libinput = {
+      services.libinput = {
         # Enable touchpad/mouse
         enable = true;
         # Disable mouse accel

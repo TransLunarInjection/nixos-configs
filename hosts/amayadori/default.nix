@@ -39,7 +39,7 @@ in
   ];
   lun.conservative-governor.enable = true;
   #  services.xserver.desktopManager.plasma5.enable = lib.mkForce false;
-  services.xserver.displayManager.defaultSession = "none+i3";
+  services.displayManager.defaultSession = "none+i3";
   lun.virtualisation.enable = lib.mkForce false;
 
 
@@ -89,7 +89,7 @@ in
     ];
 
     services.displayManager.cosmic-greeter.enable = true;
-    services.xserver.displayManager.sddm.enable = lib.mkForce false;
+    services.displayManager.sddm.enable = lib.mkForce false;
     services.desktopManager.cosmic.enable = true;
     security.pam.services.cosmic-greeter = { };
   };

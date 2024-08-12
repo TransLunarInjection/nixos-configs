@@ -5,11 +5,11 @@
     # DESKTOP ENV
     # Enable the X11 windowing system.
     services.xserver.enable = true;
-    services.xserver.displayManager.sddm.enable = true;
-    # services.xserver.displayManager.sddm.wayland.enable = lib.mkDefault true;
-    # services.xserver.displayManager.gdm.enable = true;
-    # services.xserver.displayManager.gdm.wayland = true;
-    # services.xserver.displayManager.gdm.nvidiaWayland = true;
+    services.displayManager.sddm.enable = true;
+    # services.displayManager.sddm.wayland.enable = lib.mkDefault true;
+    # services.displayManager.gdm.enable = true;
+    # services.displayManager.gdm.wayland = true;
+    # services.displayManager.gdm.nvidiaWayland = true;
     environment.systemPackages = lib.mkIf config.services.xserver.desktopManager.plasma5.enable [
       pkgs.sddm-kcm # KDE settings panel for sddm
       pkgs.libsForQt5.bismuth # KDE tiling plugin
@@ -22,7 +22,7 @@
     services.xserver.windowManager.i3.extraSessionCommands = ''
       systemctl --user import-environment PATH
     '';
-    services.xserver.displayManager.defaultSession = "none+i3";
+    services.displayManager.defaultSession = "none+i3";
 
     # oom kill faster for more responsiveness
     services.earlyoom.enable = true;
@@ -42,9 +42,9 @@
     };
 
     # GRAPHICS ACCEL
-    hardware.opengl = {
+    hardware.graphics = {
       enable = true;
-      driSupport32Bit = lib.mkForce (pkgs.system == "x86_64-linux");
+      enable32Bit = lib.mkForce (pkgs.system == "x86_64-linux");
     };
 
     # SOUND

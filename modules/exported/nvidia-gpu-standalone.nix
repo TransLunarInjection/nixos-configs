@@ -21,8 +21,8 @@ in
     ];
     boot.extraModulePackages = [ module ];
     hardware.firmware = [ nvidia_x11.firmware ];
-    hardware.opengl.extraPackages = [ nvidia_x11.out ];
-    hardware.opengl.extraPackages32 = [ nvidia_x11.lib32 ];
+    hardware.graphics.extraPackages = [ nvidia_x11.out ];
+    hardware.graphics.extraPackages32 = [ nvidia_x11.lib32 ];
     services.acpid.enable = true;
 
     # environment.etc."egl/egl_external_platform.d".source = "/run/opengl-driver/share/egl/egl_external_platform.d/";

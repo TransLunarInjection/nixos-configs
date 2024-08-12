@@ -164,8 +164,8 @@ in
         "lanBridge" = {
           name = lanBridge;
           addresses = [
-            { addressConfig.Address = "${selfULA}/64"; }
-            { addressConfig.Address = "${lanV4Self}/24"; }
+            { Address = "${selfULA}/64"; }
+            { Address = "${lanV4Self}/24"; }
           ];
           networkConfig = {
             DHCP = "no";
@@ -194,12 +194,10 @@ in
           # Add ULA prefix
           ipv6Prefixes = [
             {
-              ipv6PrefixConfig = {
-                Prefix = "${lanULA}/64";
-                AddressAutoconfiguration = true;
-                PreferredLifetimeSec = 1800;
-                ValidLifetimeSec = 1800;
-              };
+              Prefix = "${lanULA}/64";
+              AddressAutoconfiguration = true;
+              PreferredLifetimeSec = 1800;
+              ValidLifetimeSec = 1800;
             }
           ];
         };

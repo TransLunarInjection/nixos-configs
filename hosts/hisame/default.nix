@@ -318,7 +318,7 @@ in
       enable = false; # FIXME: rocm https://github.com/NixOS/nixpkgs/issues/203949
       gpus = [ "amd" ];
     };
-    hardware.opengl = {
+    hardware.graphics = {
       package = pkgs.lun.mesa.drivers;
       package32 = pkgs.lun.mesa-i686.drivers;
     };
