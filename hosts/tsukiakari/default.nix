@@ -1,23 +1,24 @@
 { config, pkgs, lib, ... }:
 let
-  name = "raikiri";
-  swap = "/dev/disk/by-partlabel/_swap";
+  name = "tsukiakari";
+  swap = "/dev/disk/by-partlabel/${name}_swap";
+  btrfsOpts = [ "rw" "noatime" "compress=zstd" "space_cache=v2" "noatime" "autodefrag" ];
+  btrfsSsdOpts = btrfsOpts ++ [ "ssd" "discard=async" ];
 in
 {
   imports = [
   ];
 
   config = {
-    networking.hostName = "mmk-${name}-nixos";
-    sconfig.machineId = "cb26ad93b8a7b58bb481b6fc3a90f12b";
-    system.stateVersion = "22.05";
+    networking.hostName = "${name}-nixos";
+    sconfig.machineId = "b0ba0bde10f87905ffa39b7eba520df0";
+    system.stateVersion = "24.05";
 
     boot.kernelParams = [
-      "mitigations=off"
       "quiet"
       "splash"
     ];
-    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_xanmod;
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
 
     services.xserver.videoDrivers = [ "amdgpu" ];
     lun.ml = {
@@ -42,16 +43,16 @@ in
         ];
       };
       "/boot" = {
-        device = "/dev/disk/by-partlabel/_esp";
+        device = "/dev/disk/by-partlabel/${name}_esp";
         fsType = "vfat";
         neededForBoot = true;
         options = [ "discard" "noatime" ];
       };
       "/persist" = {
         device = "/dev/disk/by-partlabel/${name}_persist";
-        fsType = "ext4";
+        fsType = "btrfs";
         neededForBoot = true;
-        options = [ "discard" "noatime" ];
+        options = [ "subvol=@persist" ] ++ btrfsSsdOpts;
       };
       "/nix" = {
         device = "/persist/nix";

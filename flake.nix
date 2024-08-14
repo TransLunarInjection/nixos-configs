@@ -116,10 +116,10 @@
       nixosConfigurations = {
         test-vm = allSystems.makeHost.x86_64-linux ./hosts/test-vm;
         router-nixos = allSystems.makeHost.x86_64-linux ./hosts/router;
+        tsukiakari-nixos = allSystems.makeHost.x86_64-linux ./hosts/tsukiakari;
         lun-kosame-nixos = allSystems.makeHost.x86_64-linux ./hosts/kosame;
         lun-hisame-nixos = allSystems.makeHost.x86_64-linux ./hosts/hisame;
         lun-amayadori-nixos = allSystems.makeHost.aarch64-linux ./hosts/amayadori;
-        mmk-raikiri-nixos = allSystems.makeHost.x86_64-linux ./hosts/raikiri;
       };
 
       deploy.nodes.router = {
@@ -128,6 +128,14 @@
           sshUser = "lun";
           user = "root";
           path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.router-nixos;
+        };
+      };
+      deploy.nodes.tsukiakari = {
+        hostname = "tsukiakari-nixos";
+        profiles.system = {
+          sshUser = "lun";
+          user = "root";
+          path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.tsukiakari-nixos;
         };
       };
       deploy.nodes.testSingleServiceDeployAsLunOnLocalhost = {
