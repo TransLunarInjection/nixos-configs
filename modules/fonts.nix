@@ -18,6 +18,8 @@ in
       #(nerdfonts.override { fonts = [ "Hack" ]; })
       twitter-color-emoji # Decent set of emoji
       font-awesome_6
+
+      symbola # only font with alchemical symbol block?
     ] ++ lib.optionals lotsOfFonts [
       # General fonts
       noto-fonts
