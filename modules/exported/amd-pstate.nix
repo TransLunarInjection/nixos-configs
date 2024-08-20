@@ -15,9 +15,11 @@ in
     # amd_pstate:amd_pstate_init: amd_pstate: the _CPC object is not present in SBIOS
     # option can be found here: Advanced > AMD CBS > NBIOS Common Options > SMU Common Options > CPPC > CPPC CTRL set to Enabled
     boot = {
+      # kernelModules = [ "amd_pstate" ]; # Should not be needed
       kernelParams = lib.mkMerge [
         [
           "initcall_blacklist=acpi_cpufreq_init" # use amd_pstate instead
+          "amd_pstate=active" # mode selection required after cpufreq: amd-pstate: add amd-pstate driver parameter for mode selection
         ]
         (lib.mkIf cfg.sharedMem [ "amd_pstate.shared_mem=1" ])
       ];

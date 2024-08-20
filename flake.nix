@@ -132,6 +132,7 @@
       };
       deploy.nodes.tsukiakari = {
         hostname = "tsukiakari-nixos";
+        interactiveSudo = true;
         profiles.system = {
           sshUser = "lun";
           user = "root";
