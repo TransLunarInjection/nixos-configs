@@ -1,4 +1,4 @@
-{ config, pkgs, lib, flakeArgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   name = "hisame";
   swap = "/dev/disk/by-partlabel/hisame_swap";
@@ -190,28 +190,28 @@ in
     specialisation.nvk.configuration = {
       lun.nvk.enable = true;
     };
-    specialisation.cosmic.configuration = {
-      lun.nvk.enable = true;
+    # specialisation.cosmic.configuration = {
+    #   lun.nvk.enable = true;
 
-      imports = [
-        flakeArgs.nixos-cosmic.nixosModules.default
-      ];
+    #   imports = [
+    #     flakeArgs.nixos-cosmic.nixosModules.default
+    #   ];
 
-      services.displayManager.cosmic-greeter.enable = true;
-      services.xserver.displayManager.sddm.enable = lib.mkForce false;
-      services.desktopManager.cosmic.enable = true;
-      security.pam.services.cosmic-greeter = { };
-    };
-    specialisation.cosmic-nvidia-proprietary.configuration = {
-      imports = [
-        flakeArgs.nixos-cosmic.nixosModules.default
-      ];
+    #   services.displayManager.cosmic-greeter.enable = true;
+    #   services.xserver.displayManager.sddm.enable = lib.mkForce false;
+    #   services.desktopManager.cosmic.enable = true;
+    #   security.pam.services.cosmic-greeter = { };
+    # };
+    # specialisation.cosmic-nvidia-proprietary.configuration = {
+    #   imports = [
+    #     flakeArgs.nixos-cosmic.nixosModules.default
+    #   ];
 
-      services.displayManager.cosmic-greeter.enable = true;
-      services.xserver.displayManager.sddm.enable = lib.mkForce false;
-      services.desktopManager.cosmic.enable = true;
-      security.pam.services.cosmic-greeter = { };
-    };
+    #   services.displayManager.cosmic-greeter.enable = true;
+    #   services.xserver.displayManager.sddm.enable = lib.mkForce false;
+    #   services.desktopManager.cosmic.enable = true;
+    #   security.pam.services.cosmic-greeter = { };
+    # };
 
     # services.hardware.openrgb = {
     #   enable = true;
