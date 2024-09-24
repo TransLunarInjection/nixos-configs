@@ -9,14 +9,14 @@
       openFirewall = lib.mkForce false;
       securityType = "user";
 
-      extraConfig = ''
-        workgroup = WORKGROUP
-        server string = router
-        server role = standalone server
-        map to guest = bad user
-        bind interfaces only = yes
-        interfaces = lo enp1s0f2
-      '';
+      settings.global = {
+        workgroup = "WORKGROUP";
+        "server string" = "router";
+        "server role" = "standalone server";
+        "map to guest" = "bad user";
+        "bind interfaces only" = "yes";
+        "interfaces" = "lo enp1s0f2";
+      };
 
       shares = {
         media = {
