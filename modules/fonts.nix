@@ -17,7 +17,7 @@ in
       fira-code # use in emacs
       #(nerdfonts.override { fonts = [ "Hack" ]; })
       twitter-color-emoji # Decent set of emoji
-      font-awesome_6
+      font-awesome
 
       symbola # only font with alchemical symbol block?
     ] ++ lib.optionals lotsOfFonts [
