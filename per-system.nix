@@ -164,12 +164,8 @@ let
             files = "\\.sh$";
             entry = lib.mkForce "${lib.getExe perSystemSelf.pkgs.beautysh} -t";
           };
-          # TOML
-          # taplo.enable = true;
           # YAML
           yamllint.enable = true;
-          # markdown
-          markdownlint.enable = true;
         };
       };
     } // flakeArgs.deploy-rs.lib.${system}.deployChecks flakeArgs.self.deploy;
