@@ -14,6 +14,11 @@ in
     sconfig.machineId = "b0ba0bde10f87905ffa39b7eba520df0";
     system.stateVersion = "24.05";
 
+    hardware.graphics.extraPackages = with pkgs; [
+      amdvlk
+      vulkan-loader
+    ];
+
     boot.kernelParams = [
       "pci=pcie_bus_perf,big_root_window,ecrc=on"
       "pcie_ports=native" # handle everything in linux even if uefi wants to
@@ -21,42 +26,60 @@ in
       "pcie_aspm=force" # force link state
       "quiet"
       #"splash"
+
+      # modinfo amdgpu | grep "^parm:"
       # "amdgpu.gpu_recovery=2" # advanced TDR mode
       # reset_method:GPU reset method (-1 = auto (default), 0 = legacy, 1 = mode0, 2 = mode1, 3 = mode2, 4 = baco/bamaco) (int)
       # "amdgpu.reset_method=4"
 
       # TODO: Move into amdgpu-no-ecc module
-      "amdgpu.ras_enable=0"
+      # "amdgpu.ras_enable=0"
+      "amdgpu.ppfeaturemask=0xffffffff" # enable all powerplay features to allow increasing power limit
       # 10s timeout for all operations (otherwise compute defaults to 60s)
       "amdgpu.lockup_timeout=10000,10000,10000,10000"
-      #"amdgpu.runpm=2"
-      #"amdgpu.aspm=1"
-
-      # hw hwatchdog doesn't work on this platform
-      # "nmi_watchdog=0"
-      # "nowatchdog"
-      # "acpi_no_watchdog"
+      "amdgpu.runpm=-2"
+      "amdgpu.aspm=1"
 
       # trust tsc, modern AMD platform
       "tsc=nowatchdog"
-      #"iommu=pt"
       "iommu=pt"
+      #"iommu=off" # AMD recommend disabling iommu for ML loads
       "amd_iommu=pgtbl_v2,force_enable"
       "amdgpu.send_sigterm=1"
       #"amdgpu.bapm=1"
       #"amdgpu.mes=1"
       #"amdgpu.uni_mes=1"
-      #"amdgpu.use_xgmi_p2p=1"
-      #"amdgpu.pcie_p2p=1"
+      "amdgpu.use_xgmi_p2p=1"
+      "amdgpu.pcie_p2p=1"
+      # https://gitlab.com/CalcProgrammer1/OpenRGB/-/blob/master/Documentation/KernelParameters.md
+      "acpi_enforce_resources=lax"
+      "mem_encrypt=off"
     ];
+    services.udev.packages = [ pkgs.i2c-tools pkgs.openrgb-with-all-plugins ];
+    environment.systemPackages = [ pkgs.i2c-tools pkgs.openrgb-with-all-plugins pkgs.linuxPackages_latest.cpupower ];
+    boot.kernelModules = [ "i2c-dev" "i2c-piix4" ];
     boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
     boot.kernelPatches = [
       {
-        name = "amdgpu-no-ecc";
-        patch = ../hisame/kernel/amdgpu-no-ecc.patch;
+        name = "amdgpu-plimit-override";
+        patch = ./amdgpu-plimit-override.patch;
+      }
+      {
+        name = "lun-cfg";
+        patch = null;
+        extraConfig = ''
+          HSA_AMD y
+          PCI_P2PDMA y
+          DMABUF_MOVE_NOTIFY y
+          HSA_AMD_P2P y
+        '';
       }
     ];
+    lun.efi-tools.enable = true;
+    lun.power-saving.enable = true;
+    services.nscd.enableNsncd = true;
     networking.firewall.allowedTCPPorts = [ 5000 5001 8000 8080 8081 ];
+    programs.nix-ld.enable = true;
 
     systemd.defaultUnit = lib.mkForce "multi-user.target";
     boot.plymouth.enable = lib.mkForce false;

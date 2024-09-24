@@ -1,0 +1,21 @@
+--- a/drivers/gpu/drm/amd/pm/powerplay/amd_powerplay.c
++++ b/drivers/gpu/drm/amd/pm/powerplay/amd_powerplay.c
+@@ -983,6 +983,7 @@ static int amdgpu_set_power_limit(void *handle, uint32_t limit)
+ 		limit = hwmgr->default_power_limit;
+ 
+ 	max_power_limit = hwmgr->default_power_limit;
++	max_power_limit = (max_power_limit * 3) / 2;
+ 	if (hwmgr->od_enabled) {
+ 		max_power_limit *= (100 + hwmgr->platform_descriptor.TDPODLimit);
+ 		max_power_limit /= 100;
+
+--- a/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
++++ b/drivers/gpu/drm/amd/pm/swsmu/amdgpu_smu.c
+@@ -849,5 +849,7 @@ int smu_init(struct amdgpu_device *adev)
+ 		return ret;
+ 	}
+
++	smu->max_power_limit = (smu->max_power_limit * 3) / 2;
++	smu->min_power_limit = smu->min_power_limit / 2;
+ 	if (!amdgpu_sriov_vf(adev))
+ 		smu_get_unique_id(smu);
