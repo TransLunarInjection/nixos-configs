@@ -82,6 +82,7 @@ let
   (lib.optionalAttrs (pkgs.system == "x86_64-linux") {
     # FIXME: this is upstreamed?
     tabby = pkgs.callPackage ./tabby { };
+    cursorai = pkgs.callPackage ./cursorai { };
     wowup = pkgs.callPackage ./wowup { };
     lutris = pkgs.lutris.override {
       extraLibraries = pkgs: with pkgs; [
