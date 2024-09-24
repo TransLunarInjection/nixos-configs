@@ -20,6 +20,7 @@ in
       font-awesome
 
       symbola # only font with alchemical symbol block?
+      last-resort
     ] ++ lib.optionals lotsOfFonts [
       # General fonts
       noto-fonts
