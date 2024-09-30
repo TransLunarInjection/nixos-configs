@@ -120,11 +120,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1727629862,
-        "narHash": "sha256-0lzdsVha/cYdHn9+QBtj1MHq5w9vX7mRbhlSQCIK3n0=",
+        "lastModified": 1727659039,
+        "narHash": "sha256-sn+5WnLAF89n2AG3iEB2owJWRPpM2eY7aqaBjB4kGrQ=",
         "owner": "nix-community",
         "repo": "emacs-overlay",
-        "rev": "311c0e81965ecd4cdc368aa38f821f4ffd1e657d",
+        "rev": "619e3ff8298c76f2036b59d48d2dc3dfea3a6388",
         "type": "github"
       },
       "original": {
@@ -626,11 +626,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1727651890,
-        "narHash": "sha256-lZaZIGkogzUiX9refAuZuj6OWcsVJxW7u4SWUvn0DH0=",
+        "lastModified": 1727660286,
+        "narHash": "sha256-sDv/gCrfanoVPjBpkzGt8hMz8muoY/BMSAg9GxooTiM=",
         "owner": "lilyinstarlight",
         "repo": "nixos-cosmic",
-        "rev": "0844c1fd7e7f5d17098b2dfb064b6307234e4bf1",
+        "rev": "0936988aad5ae136999ea461fca7bbe0ab09eb7a",
         "type": "github"
       },
       "original": {
@@ -1080,8 +1080,7 @@
         "pre-commit-hooks": "pre-commit-hooks_4",
         "rust-overlay": "rust-overlay_2",
         "systems": "systems_4",
-        "thoth-reminder-bot": "thoth-reminder-bot",
-        "vscode-server": "vscode-server"
+        "thoth-reminder-bot": "thoth-reminder-bot"
       }
     },
     "rtf-tokenize": {
@@ -1108,11 +1107,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1727490462,
-        "narHash": "sha256-OrrPiNBiikv9BR464XTT75FzOq7tKAvMbMi7YOKVIeg=",
+        "lastModified": 1727577080,
+        "narHash": "sha256-2LPT76Acp6ebt7fCt90eq/M8T2+X09s/yTVgfVFrtno=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "11a13e50debafae4ae802f1d6b8585101516dd93",
+        "rev": "73a833855442ce8cee710cf4d8d054fea1c81196",
         "type": "github"
       },
       "original": {
@@ -1265,29 +1264,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "vscode-server": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1713958148,
-        "narHash": "sha256-8PDNi/dgoI2kyM7uSiU4eoLBqUKoA+3TXuz+VWmuCOc=",
-        "owner": "nix-community",
-        "repo": "nixos-vscode-server",
-        "rev": "fc900c16efc6a5ed972fb6be87df018bcf3035bc",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixos-vscode-server",
         "type": "github"
       }
     }
