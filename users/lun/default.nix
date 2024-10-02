@@ -4,8 +4,6 @@
     ./modern-unix.nix
     ./shells
     ./on-nixos
-  ] ++ lib.optionals lun-profiles.emacs [
-    ./doom-emacs
   ] ++ lib.optionals lun-profiles.graphical [
     ./gui
   ];

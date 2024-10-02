@@ -83,10 +83,11 @@ in
           "${modifier}+Control+Shift+Up  " = "move workspace to output up";
           "${modifier}+Control+Shift+Down" = "move workspace to output down";
           "${modifier}+Control+${alt}+Shift+Q" = "exec swaymsg -t get_tree | ${pkgs.jq}/bin/jq 'recurse(.nodes[], .floating_nodes[]) | select(.focused).pid' | xargs -L 1 kill -9";
-          "${modifier}+${alt}+s" = ''
-            exec emacsclient -c "~/sync/dev/scratch/$(date +%Y-%m)/$(date +%F).txt"'';
-          "${modifier}+${alt}+d" = ''
-            exec emacsclient -c "~/sync/org/diary/$(date +%Y-%m)/log_$(date +%F).txt"'';
+          # FIXME: pick another editor for these
+          # "${modifier}+${alt}+s" = ''
+          #   exec emacsclient -c "~/sync/dev/scratch/$(date +%Y-%m)/$(date +%F).txt"'';
+          # "${modifier}+${alt}+d" = ''
+          #   exec emacsclient -c "~/sync/org/diary/$(date +%Y-%m)/log_$(date +%F).txt"'';
         };
 
 

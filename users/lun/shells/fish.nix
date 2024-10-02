@@ -30,8 +30,6 @@
       eval (pushd /; ${pkgs.direnv}/bin/direnv hook fish; popd;)
     '';
 
-    ".config/fish/conf.d/vterm.fish".source = ./vterm.fish;
-
     ".config/fish/conf.d/any-nix-shell.fish".text = ''
       ${pkgs.any-nix-shell}/bin/any-nix-shell fish | source
     '';
