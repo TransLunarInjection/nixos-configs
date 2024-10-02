@@ -14,7 +14,6 @@ in
       liberation_ttf
       unifont
       vistafonts # Calibri, Cambria, Candara, Consolas, Constantia, Corbel
-      fira-code # use in emacs
       #(nerdfonts.override { fonts = [ "Hack" ]; })
       twitter-color-emoji # Decent set of emoji
       font-awesome
