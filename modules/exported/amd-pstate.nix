@@ -20,7 +20,7 @@ in
       kernelParams = lib.mkMerge [
         [
           #"initcall_blacklist=acpi_cpufreq_init" # use amd_pstate instead
-          "amd_pstate=active" # mode selection required after cpufreq: amd-pstate: add amd-pstate driver parameter for mode selection
+          "amd_pstate=guided" # mode selection required after cpufreq: amd-pstate: add amd-pstate driver parameter for mode selection
         ]
         (lib.mkIf cfg.sharedMem [ "amd_pstate.shared_mem=1" ])
       ];
@@ -38,6 +38,7 @@ in
 
     system.requiredKernelConfig = with config.lib.kernelConfig; [
       (isYes "X86_AMD_PSTATE")
+      (isYes "X86_FEATURE_CPPC")
       (isEnabled "X86_AMD_PSTATE_UT")
     ];
   };
