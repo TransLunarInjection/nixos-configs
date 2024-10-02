@@ -23,7 +23,7 @@ in
       glxinfo
       vulkan-tools
       nixd
-      rehex
+      #rehex
       imhex
       meld # graphical diff, lets you paste in pretty easily
       nurl # nix-prefetch-url but better
