@@ -14,7 +14,6 @@ let
       #   some-package = ...
       # })
       flakeArgs.self.overlays.default
-      flakeArgs.emacs-overlay.overlay
       (import ./overlay-nixpkgs.nix { inherit flakeArgs; })
     ];
   };
@@ -107,7 +106,6 @@ let
               inherit (perSystemSelf) pkgs-stable;
               nixosConfig = null;
               lun-profiles = {
-                emacs = false;
                 graphical = true;
                 wine = false;
               };

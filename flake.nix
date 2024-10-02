@@ -28,9 +28,6 @@
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
     openxr-nix-flake.url = "github:LunNova/openxr-nix-flake";
     openxr-nix-flake.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.url = "github:nix-community/emacs-overlay";
-    emacs-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    emacs-overlay.inputs.nixpkgs-stable.follows = "nixpkgs-stable";
     lix = {
       url = "git+https://git@git.lix.systems/lix-project/lix";
       flake = false;
