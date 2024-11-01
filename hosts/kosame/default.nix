@@ -170,6 +170,7 @@ in
   # services.tlp.enable = true;
 
   lun.profiles = {
+    personal = true;
     gaming = true;
   };
   boot.binfmt.emulatedSystems = [ "aarch64-linux" "i686-linux" ];

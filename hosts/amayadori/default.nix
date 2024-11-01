@@ -34,6 +34,7 @@ in
   lun.power-saving.usb = true;
   lun.persistence.enable = true;
   lun.persistence.dirs = [
+    "/nix"
     "/tmp"
     "/var/lib/sddm"
   ];

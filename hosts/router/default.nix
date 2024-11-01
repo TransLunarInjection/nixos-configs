@@ -116,7 +116,7 @@ in
     };
     lun.profiles = {
       server = true;
-      emacs = false;
+      personal = false;
       gaming = false;
       graphical = false;
     };
