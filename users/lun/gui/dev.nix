@@ -1,4 +1,4 @@
-{ pkgs, lib, flakeArgs, ... }:
+{ pkgs, lib, flakeArgs, lun-profiles, ... }:
 let
   sshAddDefault = pkgs.writeShellApplication {
     name = "sshAddDefault";
@@ -27,12 +27,15 @@ in
       imhex
       meld # graphical diff, lets you paste in pretty easily
       nurl # nix-prefetch-url but better
+    ] ++ lib.optionals lun-profiles.personal [
       flakeArgs.deploy-rs.packages.${pkgs.system}.default
       # waylandn't
       # pkgs.lun.compositor-killer # FIXME: wayland-scanner not found
+      lun.cursorai
     ] ++ lib.optionals (pkgs.system == "x86_64-linux") [
-      jetbrains.idea-ultimate
-      jetbrains.rust-rover
+      # FIXME: these don't work well non-fsh
+      # jetbrains.idea-ultimate
+      # jetbrains.rust-rover
     ];
 
     programs.vscode = {

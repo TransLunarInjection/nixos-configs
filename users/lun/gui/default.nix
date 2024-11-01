@@ -2,19 +2,20 @@
 {
   imports = [
     ./i3
-    ./media
     ./cad
     ./sway
     # ./conky.nix # TODO: perf issues
     ./dev.nix
-    ./discord.nix
     ./file-management.nix
+    ./xdg-mime-apps.nix
+  ] ++ lib.optionals (lun-profiles.personal or false) [
     ./music.nix
     ./syncthing.nix
-    ./vr-gaming.nix
-    ./xdg-mime-apps.nix
+    ./discord.nix
+    ./media
   ] ++ lib.optionals (lun-profiles.gaming or false) [
     ./gaming.nix
+    ./vr-gaming.nix
   ];
 
   config = {
@@ -41,9 +42,9 @@
       };
     };
 
-    home.packages = with pkgs; [
+    home.packages = lib.optionals (lun-profiles.personal or false) (with pkgs; [
       pinta # paint.net alternative
-      calibre
+      flakeArgs.nixpkgs-stable.legacyPackages.${pkgs.system}.calibre
       (flakeArgs.plover-flake.packages.${pkgs.system}.plover.with-plugins
         (ps: with ps; [
           plover-console-ui
@@ -53,6 +54,6 @@
     ] ++ lib.optionals (pkgs.system == "x86_64-linux") [
       lun.wally
       microsoft-edge
-    ];
+    ]);
   };
 }
