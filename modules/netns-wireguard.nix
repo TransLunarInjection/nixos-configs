@@ -141,11 +141,11 @@ in
               PrivateMounts = false;
               ExecStart = (pkgs.writeShellScript "netns-up" ''
                 set -xe
-                ${pkgs.iproute}/bin/ip netns add $1
+                ${pkgs.iproute2}/bin/ip netns add $1
                 ${pkgs.utillinux}/bin/umount /var/run/netns/$1
                 ${pkgs.utillinux}/bin/mount --bind /proc/self/ns/net /var/run/netns/$1
               '') + " %I";
-              ExecStop = "${pkgs.iproute}/bin/ip netns del %I";
+              ExecStop = "${pkgs.iproute2}/bin/ip netns del %I";
             };
           };
 
