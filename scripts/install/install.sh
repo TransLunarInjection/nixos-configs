@@ -3,11 +3,11 @@ set -xeuo pipefail
 IFS=$'\n'
 
 # edit these fields
-NAME=amayadori
+PART_PREFIX=amayadori
 HOSTNAME="lun-$NAME-nixos"
 
 BOOT_PARTITION=/dev/disk/by-partlabel/'EFI\x20system\x20partition'
-PERSIST_PARTITION=/dev/disk/by-label/"$NAME"_persist
+PERSIST_PARTITION=/dev/disk/by-label/"$PART_PREFIX"_persist
 FLAKE=.#$HOSTNAME
 
 mount -t tmpfs none /mnt
@@ -31,4 +31,4 @@ mount -o bind /mnt/persist/var/log /mnt/var/log
 # Install nixos:
 nix-shell -p utillinux git nixFlakes nixos-install-tools --run "nixos-install --cores 8 --impure --no-root-passwd --root /mnt --flake $FLAKE"
 # Install refind efi boot manager
-# nix-shell -p efibootmgr refind --run "refind-install --root /mnt"
+nix-shell -p efibootmgr refind --run "refind-install --root /mnt"
