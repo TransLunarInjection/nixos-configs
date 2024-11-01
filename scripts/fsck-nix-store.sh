@@ -9,4 +9,7 @@ nix-store --query --referrers-closure "$(find /nix/store -maxdepth 1 -type f -na
 nix-store --gc
 nix-store --verify --check-contents --repair
 nix store gc
-nix store optimise
+
+if [ -d /nix/store/.links/ ]; then
+	nix store optimise
+fi

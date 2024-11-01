@@ -45,7 +45,11 @@ fi
 /nix/var/nix/profiles/system/bin/switch-to-configuration boot
 
 nix store gc --no-keep-derivations --no-keep-env-derivations
-nix store optimise
+
+if [ -d /nix/store/.links/ ]; then
+	nix store optimise
+fi
+
 sync
 
 # We probably just deleted a lot so TRIM all drives
