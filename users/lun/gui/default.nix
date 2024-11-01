@@ -26,12 +26,7 @@
 
     programs.firefox = {
       enable = true;
-      package = pkgs.firefox.overrideAttrs (old: {
-        postFixup = ''
-          ${old.postFixup or ""}
-          wrapProgram "$out/bin/firefox" --set GTK_USE_PORTAL 1 --set GTK_DEBUG portals --set MOZ_ENABLE_WAYLAND 1
-        '';
-      });
+      package = pkgs.firefox-bin;
     };
 
     # workaround https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
