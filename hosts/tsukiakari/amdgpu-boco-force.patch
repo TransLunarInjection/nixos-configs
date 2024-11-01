@@ -1,0 +1,369 @@
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+index 137a88b8de45..3a16fe69e33b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+@@ -175,6 +175,7 @@ extern char amdgpu_lockup_timeout[AMDGPU_MAX_TIMEOUT_PARAM_LENGTH];
+ extern int amdgpu_dpm;
+ extern int amdgpu_fw_load_type;
+ extern int amdgpu_aspm;
++extern int amdgpu_atpx;
+ extern int amdgpu_runtime_pm;
+ extern uint amdgpu_ip_block_mask;
+ extern int amdgpu_bapm;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+index 375f02002579..05798794e493 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+@@ -639,7 +639,7 @@ static bool amdgpu_atpx_detect(void)
+ 		amdgpu_atpx_get_quirks(pdev);
+ 	}
+ 
+-	if (has_atpx && vga_count == 2) {
++	if (has_atpx) {
+ 		acpi_get_name(amdgpu_atpx_priv.atpx.handle, ACPI_FULL_PATHNAME, &buffer);
+ 		pr_info("vga_switcheroo: detected switching method %s handle\n",
+ 			acpi_method_name);
+@@ -647,6 +647,8 @@ static bool amdgpu_atpx_detect(void)
+ 		amdgpu_atpx_priv.bridge_pm_usable = d3_supported;
+ 		amdgpu_atpx_init();
+ 		return true;
++	} else if (d3_supported && !amdgpu_atpx_priv.atpx_detected) {
++		amdgpu_atpx_priv.bridge_pm_usable = d3_supported;
+ 	}
+ 	return false;
+ }
+@@ -663,7 +665,7 @@ void amdgpu_register_atpx_handler(void)
+ 
+ 	/* detect if we have any ATPX + 2 VGA in the system */
+ 	r = amdgpu_atpx_detect();
+-	if (!r)
++	if (!r && amdgpu_atpx != 1)
+ 		return;
+ 
+ 	vga_switcheroo_register_handler(&amdgpu_atpx_handler, handler_flags);
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index bcacf2e35eba..74129308499b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -308,6 +308,8 @@ static void amdgpu_device_get_pcie_info(struct amdgpu_device *adev);
+  */
+ bool amdgpu_device_supports_px(struct drm_device *dev)
+ {
++	if (amdgpu_atpx == 1) return true;
++	if (amdgpu_atpx == 0) return false;
+ 	struct amdgpu_device *adev = drm_to_adev(dev);
+ 
+ 	if ((adev->flags & AMD_IS_PX) && !amdgpu_is_atpx_hybrid())
+@@ -361,6 +363,22 @@ void amdgpu_device_detect_runtime_pm_mode(struct amdgpu_device *adev)
+ 	bamaco_support = amdgpu_device_supports_baco(dev);
+ 
+ 	switch (amdgpu_runtime_pm) {
++	case 1114:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_PX;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_PX for runtime pm\n");
++		break;
++	case 1113:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BOCO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BOCO for runtime pm\n");
++		break;
++	case 1112:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BAMACO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BAMACO for runtime pm\n");
++		break;
++	case 1111:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BACO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BACO for runtime pm\n");
++		break;
+ 	case 2:
+ 		if (bamaco_support & MACO_SUPPORT) {
+ 			adev->pm.rpm_mode = AMDGPU_RUNPM_BAMACO;
+@@ -2537,11 +2555,11 @@ static int amdgpu_device_ip_early_init(struct amdgpu_device *adev)
+ 		break;
+ 	}
+ 
+-	if (amdgpu_has_atpx() &&
++	if (amdgpu_atpx == 1 || (amdgpu_has_atpx() &&
+ 	    (amdgpu_is_atpx_hybrid() ||
+ 	     amdgpu_has_atpx_dgpu_power_cntl()) &&
+ 	    ((adev->flags & AMD_IS_APU) == 0) &&
+-	    !dev_is_removable(&adev->pdev->dev))
++	    !dev_is_removable(&adev->pdev->dev)))
+ 		adev->flags |= AMD_IS_PX;
+ 
+ 	if (!(adev->flags & AMD_IS_APU)) {
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+index e2382566af44..b006eb362bd1 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+@@ -148,6 +148,7 @@ char amdgpu_lockup_timeout[AMDGPU_MAX_TIMEOUT_PARAM_LENGTH];
+ int amdgpu_dpm = -1;
+ int amdgpu_fw_load_type = -1;
+ int amdgpu_aspm = -1;
++int amdgpu_atpx = -1;
+ int amdgpu_runtime_pm = -1;
+ uint amdgpu_ip_block_mask = 0xffffffff;
+ int amdgpu_bapm = -1;
+@@ -367,6 +368,13 @@ module_param_named(fw_load_type, amdgpu_fw_load_type, int, 0444);
+ MODULE_PARM_DESC(aspm, "ASPM support (1 = enable, 0 = disable, -1 = auto)");
+ module_param_named(aspm, amdgpu_aspm, int, 0444);
+ 
++/**
++ * DOC: aspm (int)
++ * To disable ASPM (1 = enable, 0 = disable). The default is -1 (auto, enabled).
++ */
++MODULE_PARM_DESC(atpx, "runtime power management via D3Cold. (1 = enable, 0 = disable). The default is -1 (auto, enabled if supported).");
++module_param_named(atpx, amdgpu_atpx, int, 0444);
++
+ /**
+  * DOC: runpm (int)
+  * Override for runtime power management control for dGPUs. The amdgpu driver can dynamically power down
+@@ -2363,14 +2371,14 @@ static int amdgpu_pci_probe(struct pci_dev *pdev,
+ 						DPM_FLAG_SMART_SUSPEND |
+ 						DPM_FLAG_MAY_SKIP_RESUME);
+ 		pm_runtime_use_autosuspend(ddev->dev);
+-		pm_runtime_set_autosuspend_delay(ddev->dev, 5000);
++		pm_runtime_set_autosuspend_delay(ddev->dev, 60000);
+ 
+ 		pm_runtime_allow(ddev->dev);
+ 
+ 		pm_runtime_mark_last_busy(ddev->dev);
+ 		pm_runtime_put_autosuspend(ddev->dev);
+ 
+-		pci_wake_from_d3(pdev, TRUE);
++		pci_wake_from_d3(pdev, FALSE);
+ 
+ 		/*
+ 		 * For runpm implemented via BACO, PMFW will handle the
+@@ -2768,6 +2776,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+ 		pci_disable_device(pdev);
+ 		pci_ignore_hotplug(pdev);
+ 		pci_set_power_state(pdev, PCI_D3cold);
++		dev_info(&pdev->dev, "HACK ~lun pci_set_power_state PCI_D3cold\n");
+ 		drm_dev->switch_power_state = DRM_SWITCH_POWER_DYNAMIC_OFF;
+ 	} else if (adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO) {
+ 		/* nothing to do */
+@@ -2776,6 +2785,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+ 		amdgpu_device_baco_enter(drm_dev);
+ 	}
+ 
++	dev_info(&pdev->dev, "HACK ~lun amdgpu_pmops_runtime_suspend finished\n");
+ 	dev_dbg(&pdev->dev, "asic/device is runtime suspended\n");
+ 
+ 	return 0;
+diff --git a/drivers/gpu/vga/vga_switcheroo.c b/drivers/gpu/vga/vga_switcheroo.c
+index 365e6ddbe90f..03be6dc94709 100644
+--- a/drivers/gpu/vga/vga_switcheroo.c
++++ b/drivers/gpu/vga/vga_switcheroo.c
+@@ -172,6 +172,7 @@ static void vga_switcheroo_debugfs_fini(struct vgasr_priv *priv);
+ 
+ /* only one switcheroo per system */
+ static struct vgasr_priv vgasr_priv = {
++	.handler = NULL,
+ 	.clients = LIST_HEAD_INIT(vgasr_priv.clients),
+ 	.mux_hw_lock = __MUTEX_INITIALIZER(vgasr_priv.mux_hw_lock),
+ };
+@@ -997,7 +998,7 @@ static void vga_switcheroo_power_switch(struct pci_dev *pdev,
+ {
+ 	struct vga_switcheroo_client *client;
+ 
+-	if (!vgasr_priv.handler->power_state)
++	if (!vgasr_priv.handler || !vgasr_priv.handler->power_state)
+ 		return;
+ 
+ 	client = find_client_from_pci(&vgasr_priv.clients, pdev);
+@@ -1013,14 +1014,16 @@ static void vga_switcheroo_power_switch(struct pci_dev *pdev,
+ /* switcheroo power domain */
+ static int vga_switcheroo_runtime_suspend(struct device *dev)
+ {
++	if (!dev) return -ENODEV;
+ 	struct pci_dev *pdev = to_pci_dev(dev);
++	if (!pdev) return -ENODEV;
+ 	int ret;
+ 
+ 	ret = dev->bus->pm->runtime_suspend(dev);
+ 	if (ret)
+ 		return ret;
+ 	mutex_lock(&vgasr_mutex);
+-	if (vgasr_priv.handler->switchto) {
++	if (vgasr_priv.handler && vgasr_priv.handler->switchto) {
+ 		mutex_lock(&vgasr_priv.mux_hw_lock);
+ 		vgasr_priv.handler->switchto(VGA_SWITCHEROO_IGD);
+ 		mutex_unlock(&vgasr_priv.mux_hw_lock);
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 9cc447da9475..c18bdf0ee90e 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -949,7 +949,7 @@ pci_power_t acpi_pci_choose_state(struct pci_dev *pdev)
+ 	case ACPI_STATE_D2:
+ 		return PCI_D2;
+ 	case ACPI_STATE_D3_HOT:
+-		return PCI_D3hot;
++		return PCI_D3cold;//return PCI_D3hot;
+ 	case ACPI_STATE_D3_COLD:
+ 		return PCI_D3cold;
+ 	}
+@@ -1088,7 +1088,8 @@ int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+ 	int error;
+ 
+ 	/* If the ACPI device has _EJ0, ignore the device */
+-	if (!adev || acpi_has_method(adev->handle, "_EJ0"))
++	//if (!adev || acpi_has_method(adev->handle, "_EJ0"))
++	if (!adev)
+ 		return -ENODEV;
+ 
+ 	switch (state) {
+@@ -1115,7 +1116,7 @@ int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
+ 	if (error)
+ 		return error;
+ 
+-	pci_dbg(dev, "power state changed by ACPI to %s\n",
++	pci_info(dev, "power state changed by ACPI to %s\n",
+ 	        acpi_power_state_string(adev->power.state));
+ 
+ 	/*
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 85ced6958d6d..41da2df33fde 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -1512,7 +1512,8 @@ static void __pci_bus_set_current_state(struct pci_bus *bus, pci_power_t state,
+  * RETURN VALUE:
+  * -EINVAL if the requested state is invalid.
+  * -EIO if device does not support PCI PM or its PM capabilities register has a
+- * wrong version, or device doesn't support the requested state.
++ * wrong version, or device doesn't support the requested state, or the device
++ * does not transition to the requested state
+  * 0 if device already is in the requested state.
+  * 0 if device's power state has been successfully changed.
+  */
+@@ -1557,20 +1558,25 @@ static int pci_set_low_power_state(struct pci_dev *dev, pci_power_t state, bool
+ 	pci_write_config_word(dev, dev->pm_cap + PCI_PM_CTRL, pmcsr);
+ 
+ 	/* Mandatory power management transition delays; see PCI PM 1.2. */
+-	if (state == PCI_D3hot)
++	if (state == PCI_D3hot || state == PCI_D3cold)
+ 		pci_dev_d3_sleep(dev);
+ 	else if (state == PCI_D2)
+ 		udelay(PCI_PM_D2_DELAY);
+ 
+ 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
++	int prev_state = dev->current_state;
+ 	dev->current_state = pmcsr & PCI_PM_CTRL_STATE_MASK;
+ 	if (dev->current_state != state)
+-		pci_info_ratelimited(dev, "Refused to change power state from %s to %s\n",
+-				     pci_power_name(dev->current_state),
+-				     pci_power_name(state));
++		pci_info_ratelimited(dev, "Refused to change power state from %s to %s, now in %s\n",
++				     pci_power_name(prev_state),
++				     pci_power_name(state),
++				     pci_power_name(dev->current_state));
+ 
+ 	if (dev->bus->self)
+ 		pcie_aspm_pm_state_change(dev->bus->self, locked);
++	
++	if (dev->current_state != state)
++		return -EIO;
+ 
+ 	return 0;
+ }
+@@ -1609,25 +1615,57 @@ static int __pci_set_power_state(struct pci_dev *dev, pci_power_t state, bool lo
+ 		return 0;
+ 
+ 	if (state == PCI_D3cold) {
++		pci_info(dev, "Setting power state to D3cold. dev->current_state: %s\n", acpi_power_state_string(dev->current_state));
+ 		/*
+ 		 * To put the device in D3cold, put it into D3hot in the native
+ 		 * way, then put it into D3cold using platform ops.
+ 		 */
+-		error = pci_set_low_power_state(dev, PCI_D3hot, locked);
++		if (dev->current_state != PCI_D3hot) {
++			error = pci_set_low_power_state(dev, PCI_D3hot, locked);
++			if (error) {
++				pci_info(dev, "Going to D3cold failed, couldn't enter D3hot first. %d\n", error);
++				return error;
++			}
++		}
+ 
+-		if (pci_platform_power_transition(dev, PCI_D3cold))
+-			return error;
++		pci_info(dev, "Going to D3cold via platform\n");
++		error = pci_platform_power_transition(dev, PCI_D3cold);
++		if (error && dev->current_state != PCI_D3cold) {
++			pci_info(dev, "Going to D3cold via platform failed %d. Trying native.\n", error);
++			
++			error = pci_set_low_power_state(dev, PCI_D3cold, locked);
++			if (error || dev->current_state != PCI_D3cold) {
++				pci_info(dev, "Going to D3cold (native) failed (error: %d, current state: %s)\n", error, pci_power_name(dev->current_state));
++				// Failing to go from D0 -> D3hot can reenter D0 which is very bad because the device is probably very sad
++
++				if (dev->current_state != PCI_D3hot) {
++					error = pci_set_low_power_state(dev, PCI_D3hot, locked);
++					if (error) {
++						pci_info(dev, "Failed to reenter D3hot after failed D3Cold entry. %d\n", error);
++						return error;
++					}
++				}
++			}
++		}
++
++		acpi_pci_refresh_power_state(dev); // failure is ok
+ 
+ 		/* Powering off a bridge may power off the whole hierarchy */
+ 		if (dev->current_state == PCI_D3cold)
+ 			__pci_bus_set_current_state(dev->subordinate, PCI_D3cold, locked);
+ 	} else {
++		pci_info(dev, "Setting power state to %s\n", pci_power_name(state));
+ 		error = pci_set_low_power_state(dev, state, locked);
+ 
+-		if (pci_platform_power_transition(dev, state))
++		if (pci_platform_power_transition(dev, state) && error)
+ 			return error;
+ 	}
+ 
++	// treat D3hot as success if asked for D3cold
++	// otherwise need to get the target state exactly
++	if (dev->current_state != state && (state != PCI_D3cold && dev->current_state != PCI_D3hot))
++		return -EIO;
++
+ 	return 0;
+ }
+ 
+@@ -2664,6 +2702,7 @@ EXPORT_SYMBOL(pci_wake_from_d3);
+ static pci_power_t pci_target_state(struct pci_dev *dev, bool wakeup)
+ {
+ 	if (platform_pci_power_manageable(dev)) {
++		return PCI_D3cold;
+ 		/*
+ 		 * Call the platform to find the target state for the device.
+ 		 */
+@@ -2692,6 +2731,7 @@ static pci_power_t pci_target_state(struct pci_dev *dev, bool wakeup)
+ 		return PCI_D3cold;
+ 	else if (!dev->pm_cap)
+ 		return PCI_D0;
++	return PCI_D3cold;
+ 
+ 	if (wakeup && dev->pme_support) {
+ 		pci_power_t state = PCI_D3hot;
+@@ -3056,15 +3096,16 @@ static int pci_dev_check_d3cold(struct pci_dev *dev, void *data)
+ {
+ 	bool *d3cold_ok = data;
+ 
+-	if (/* The device needs to be allowed to go D3cold ... */
+-	    dev->no_d3cold || !dev->d3cold_allowed ||
++	if (dev->no_d3cold)
++	// if (/* The device needs to be allowed to go D3cold ... */
++	//     dev->no_d3cold || !dev->d3cold_allowed ||
+ 
+-	    /* ... and if it is wakeup capable to do so from D3cold. */
+-	    (device_may_wakeup(&dev->dev) &&
+-	     !pci_pme_capable(dev, PCI_D3cold)) ||
++	//     /* ... and if it is wakeup capable to do so from D3cold. */
++	//     (device_may_wakeup(&dev->dev) &&
++	//      !pci_pme_capable(dev, PCI_D3cold)) ||
+ 
+-	    /* If it is a bridge it must be allowed to go to D3. */
+-	    !pci_power_manageable(dev))
++	//     /* If it is a bridge it must be allowed to go to D3. */
++	//     !pci_power_manageable(dev))
+ 
+ 		*d3cold_ok = false;
+ 
