@@ -4,3 +4,5 @@ result
 .direnv/
 .idea/
 logs/
+*.raw
+*.img
