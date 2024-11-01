@@ -30,6 +30,6 @@ let
   });
 in
 {
-  home.packages = [ pkgs.armcord ]
+  home.packages = [ pkgs.legcord ]
     ++ lib.optional (pkgs.system == "x86_64-linux") openAsarDiscord;
 }
