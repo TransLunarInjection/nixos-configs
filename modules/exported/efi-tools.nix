@@ -19,6 +19,11 @@ let
         >&2 echo "Skipping ${source} as EFI directory or source .efi missing"
       fi
     '';
+  efiFileNames = {
+    "x86_64-linux" = "BOOTX64.efi";
+    "aarch64-linux" = "BOOTX64.efi";
+  };
+  efiFileName = efiFileNames.${pkgs.system} or (builtins.throw "Unknown EFI filename for ${pkgs.system}");
 in
 {
   options.lun.efi-tools = {
@@ -31,7 +36,8 @@ in
   };
   config = lib.mkIf cfg.enable {
     lun.efi-tools.tools = {
-      memtest86 = lib.mkDefault pkgs.memtest86plus.efi;
+      memtest86oss = lib.mkDefault pkgs.memtest86plus.efi;
+      memtest86 = lib.mkDefault "${pkgs.memtest86-efi}/${efiFileName}";
       shell = lib.mkDefault pkgs.edk2-uefi-shell.efi;
     };
     system.activationScripts.copy-efi-tools = lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: copyTool value (name + ".efi")) cfg.tools);
