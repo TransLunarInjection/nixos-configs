@@ -107,6 +107,7 @@ let
               nixosConfig = null;
               lun-profiles = {
                 graphical = true;
+                personal = true;
                 wine = false;
               };
             };

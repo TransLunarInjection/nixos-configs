@@ -9,5 +9,6 @@
 
   options.lun.profiles = {
     androidDev = lib.mkEnableOption "enable android development";
+    personal = lib.mkEnableOption "personal system (not shared)";
   };
 }
