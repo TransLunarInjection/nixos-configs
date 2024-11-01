@@ -134,6 +134,7 @@
           user = "root";
           path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.tsukiakari-nixos;
         };
+        remoteBuild = true;
       };
       deploy.nodes.testSingleServiceDeployAsLunOnLocalhost = {
         hostname = "localhost";
