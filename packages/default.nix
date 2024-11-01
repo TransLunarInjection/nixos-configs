@@ -92,7 +92,7 @@ let
         libgpg-error
         libpulseaudio
         sqlite
-        libusb
+        libusb1
       ];
     };
     mesa-i686 = mesaOverride pkgs.pkgsi686Linux.mesa;

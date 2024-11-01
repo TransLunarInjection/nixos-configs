@@ -3,7 +3,8 @@
 , fetchurl
 , autoPatchelfHook
 , libusb1
-, webkitgtk
+, autoAddDriverRunpath
+, webkitgtk_4_0
 , wrapGAppsHook
 , gtk3
 , gobject-introspection
@@ -20,12 +21,13 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [
     autoPatchelfHook
+    autoAddDriverRunpath
     wrapGAppsHook
   ];
 
   buildInputs = [
     libusb1
-    webkitgtk
+    webkitgtk_4_0
     gtk3
     gobject-introspection
   ];
