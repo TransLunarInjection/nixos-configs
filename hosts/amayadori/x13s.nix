@@ -16,10 +16,6 @@ let
     rev = "259251ae5050a837ca7be8228f2280d0932bcfba";
     hash = "sha256-wA+7/H6hs2TTUNCRVJGy3F9a6kzuOffzG8x+6qufryQ=";
   };
-  # Hacky workaround which mounts an updated alsa-ucm-confs package over the original nix store version
-  # Upgrading properly rebuilds the world and I don't have a fast enough system for that.
-  # TODO: remove once alsa-ucm-confs upstream has working audio configs for x13s
-  bindOverAlsa = false;
   # When on use the in-kernel QCOM_PD_MAPPER module instead of
   # userspace. Avoids some workarounds to make sure the userspace one has access to uncompressed firmware
   # Doesn't seem to be working right yet though, need to investigate.
@@ -120,7 +116,6 @@ let
     rev = "9f07579ee64aba56419cfd0fbbca9f26741edc90";
     hash = "sha256-Lyav0RtoowocrhC7Q2Y72ogHhgFuFli+c/us/Mu/Ugc=";
   };
-  # TODO: https://github.com/alsa-project/alsa-ucm-conf
 
   ath11k_fw = pkgs.runCommandNoCC "ath11k_fw" { } ''
     mkdir -p $out/lib/firmware/ath11k/
@@ -195,16 +190,6 @@ let
       # This is because the firmware is compressed in `apply` on `hardware.firmware`.
       firmwareFilesList = lib.flatten options.hardware.firmware.definitions;
     };
-  x13s-alsa-ucm-conf = pkgs.alsa-ucm-conf.overrideAttrs (_: {
-    src = pkgs.fetchFromGitHub {
-      name = "alsa-ucm-conf-src";
-      owner = "alsa-project";
-      repo = "alsa-ucm-conf";
-      # https://github.com/alsa-project/alsa-ucm-conf/pull/335/commits
-      rev = "e8c3e7792336e9f68aa560db8ad19ba06ba786bb";
-      hash = "sha256-4fIvgHIkTyGApM3uvucFPSYMMGYR5vjHOz6KQ26Kg7A=";
-    };
-  });
 in
 {
   options = {
@@ -222,12 +207,6 @@ in
     hardware.firmware = [
       (lib.hiPrio ath11k_fw)
       (lib.lowPrio (x13s_extra_fw // { compressFirmware = false; }))
-    ];
-
-    systemd.services.display-manager.serviceConfig.ExecStartPre = lib.mkIf bindOverAlsa [
-      ''
-        ${pkgs.bash}/bin/bash -c '${pkgs.mount}/bin/mount -o bind ${x13s-alsa-ucm-conf}/share/alsa/ ${pkgs.alsa-ucm-conf}/share/alsa/ || true'
-      ''
     ];
 
     environment.systemPackages = lib.mkIf (!kernelPdMapper) [ qrtr qmic rmtfs pd-mapper uncompressed-fw ];
