@@ -67,6 +67,8 @@ in
 {
   imports = [
     ./samba.nix
+    # WIP:
+    # ./lgtm.nix
   ];
 
   config = {
@@ -310,18 +312,14 @@ in
       ipv6 = true;
       reflector = true;
     };
-    # https://xeiaso.net/blog/prometheus-grafana-loki-nixos-2020-11-20
-    services.grafana = {
-      enable = true;
-      settings = {
-        server = {
-          http_addr = "0.0.0.0"; # FIXME: one interface only?
-          http_port = 8888;
-        };
-      };
-      dataDir = "/var/lib/grafana";
-    };
-    lun.persistence.dirs = [ "/var/lib/dnsmasq" "/var/lib/grafana" "/var/tmp" "/tmp" "/persist/thoth/ftmp" ];
+
+    lun.persistence.dirs = [
+      "/var/lib/dnsmasq"
+      "/var/tmp"
+      "/tmp"
+      "/persist/thoth/ftmp"
+      "/nix" # single sub-vol persistence setup
+    ];
 
     services.lldpd.enable = true;
     lun.home-assistant.enable = true;
