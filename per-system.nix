@@ -163,8 +163,6 @@ let
             files = "\\.sh$";
             entry = lib.mkForce "${lib.getExe perSystemSelf.pkgs.beautysh} -t";
           };
-          # YAML
-          yamllint.enable = true;
         };
       };
     } // flakeArgs.deploy-rs.lib.${system}.deployChecks flakeArgs.self.deploy;
