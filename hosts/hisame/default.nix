@@ -439,18 +439,26 @@ in
         path = "/mnt/_nas0/borg/uknas";
       };
     };
+    # beesd will dedupe so not needed
+    nix.settings.auto-optimise-store = lib.mkForce false;
     services.beesd.filesystems = {
       persist = {
         spec = "PARTLABEL=${name}_persist_2";
         hashTableSizeMB = 256;
         verbosity = "crit";
-        extraOptions = [ "--loadavg-target" "2.0" ];
+        extraOptions = [ "--loadavg-target" "1.5" ];
       };
       scratch = {
         spec = "PARTLABEL=${name}_scratch";
         hashTableSizeMB = 256;
         verbosity = "crit";
-        extraOptions = [ "--loadavg-target" "2.0" ];
+        extraOptions = [ "--loadavg-target" "1.5" ];
+      };
+      bigscratch = {
+        spec = "PARTLABEL=${name}_bigscratch";
+        hashTableSizeMB = 256;
+        verbosity = "crit";
+        extraOptions = [ "--loadavg-target" "1.5" ];
       };
     };
     fileSystems = {
@@ -478,7 +486,7 @@ in
         fsType = "tmpfs";
         device = "tmpfs";
         neededForBoot = true;
-        options = [ "mode=1777" "rw" "nosuid" "nodev" "size=40G" ];
+        options = [ "mode=1777" "rw" "nosuid" "nodev" "size=64G" ];
       };
       "/mnt/scratch" = {
         fsType = "btrfs";
