@@ -232,16 +232,17 @@ in
     # specialisation.card2.configuration = {
     #   lun.gpu-select.card = lib.mkForce "card2";
     # };
-    # lun.amd-pstate.enable = true;
-    # lun.amd-pstate.sharedMem = true;
-    # powerManagement.cpuFreqGovernor = "schedutil";
+    lun.amd-pstate.enable = true;
+    lun.amd-pstate.mode = "active";
     lun.conservative-governor.enable = true;
+    # powerManagement.cpuFreqGovernor = "schedutil";
+
     lun.tablet.enable = true;
     lun.profiles = {
+      personal = true;
       gaming = true;
       wineGaming = true;
     };
-
 
     services.resolved = {
       enable = true;
@@ -257,6 +258,9 @@ in
     services.udev.extraRules = ''
       # make mount work for ntfs devices without specifying -t ntfs3
       SUBSYSTEM=="block", ENV{ID_FS_TYPE}=="ntfs", ENV{ID_FS_TYPE}="ntfs3"
+
+      # remove nvidia audio
+      ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x040300", ATTR{remove}="1"
     '';
 
     # boot.kernelModules = [ "nct6775" "zenpower" ];
@@ -265,7 +269,7 @@ in
     boot.blacklistedKernelModules = [
       # "nouveau"
       "radeon"
-      "sp5100_tco" # watchdog hardware doesn't work
+      # "sp5100_tco" # watchdog hardware doesn't work
       # "k10temp" # replaced by zenpower
     ];
     services.power-profiles-daemon.enable = true;
