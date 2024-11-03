@@ -1,4 +1,4 @@
-{ flakeArgs, pkgs, ... }:
+{ pkgs, ... }:
 {
-  nix.package = pkgs.callPackage (flakeArgs.lix + "/package.nix") { stdenv = pkgs.clangStdenv; };
+  nix.package = pkgs.lix;
 }
