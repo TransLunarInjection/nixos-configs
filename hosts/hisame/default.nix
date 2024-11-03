@@ -326,6 +326,46 @@ in
       package = pkgs.lun.mesa.drivers;
       package32 = pkgs.lun.mesa-i686.drivers;
     };
+    modules.media.audio.interfaces.scarlett2.enable = true;
+
+    hardware.bluetooth.settings = {
+      General = {
+        # ControllerMode = "le";
+        Experimental = true;
+        KernelExperimental = "6fbaf188-05e0-496a-9885-d6ddfdb4e03e"; # BlueZ Experimental ISO socket
+      };
+    };
+    services.pipewire = {
+      enable = true;
+      extraConfig.pipewire."92-latency" = {
+        context.properties = {
+          default.clock.quantum = 1024;
+          default.clock.min-quantum = 1024;
+          default.clock.max-quantum = 1024;
+        };
+        # jack.properties = {
+        #   node.quantum = "256/48000";
+        # };
+      };
+      wireplumber.extraConfig."10-bluez" = {
+        "monitor.bluez.properties" = {
+          "bluez5.enable-sbc-xq" = true;
+          "bluez5.enable-msbc" = true;
+          "bluez5.enable-hw-volume" = true;
+          "bluez5.hfphsp-backend" = "native";
+          "bluez5.roles" = [
+            "hsp_hs"
+            "hsp_ag"
+            "hfp_hf"
+            "hfp_ag"
+            "a2dp_sink"
+            "a2dp_source"
+            "bap_sink"
+            "bap_source"
+          ];
+        };
+      };
+    };
 
     hardware.cpu.amd.updateMicrocode = true;
 
