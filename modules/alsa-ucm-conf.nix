@@ -1,7 +1,7 @@
 { pkgs, config, ... }:
 let
   alsa-ucm-conf = pkgs.alsa-ucm-conf.overrideAttrs (old: {
-    patches = old.patches ++ [
+    patches = (old.patches or [ ]) ++ [
       ./alsa-ucm-2i2.patch
     ];
   });
