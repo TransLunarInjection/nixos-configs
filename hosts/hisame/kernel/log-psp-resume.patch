@@ -3,7 +3,8 @@
 @@ -528,5 +528,6 @@
  	struct psp_context *psp = &adev->psp;
  
-	DRM_INFO("PSP is resuming...\n");
-+	WARN(1, KERN_ERR "PSP resume!");
+-	dev_info(adev->dev, "PSP is resuming...\n");
++	dev_warn(adev->dev, "PSP is resuming. Caused by PID %d\n", task_pid_nr(current));
++	WARN(1, KERN_ERR "PSP resume!");dump_stack();
  
  	if (psp->mem_train_ctx.enable_mem_training) {
