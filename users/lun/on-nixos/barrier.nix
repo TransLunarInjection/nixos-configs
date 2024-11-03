@@ -13,8 +13,6 @@ in
     };
   };
 
-  config.services.barrier.enable = true;
-
   config = {
     systemd.user.services.barrier = lib.mkIf cfg.enable {
       Unit = {
