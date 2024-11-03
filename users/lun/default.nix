@@ -1,4 +1,4 @@
-{ lib, pkgs, flakeArgs, lun-profiles, ... }:
+{ lib, pkgs, lun-profiles, ... }:
 {
   imports = [
     ./modern-unix.nix
@@ -34,7 +34,8 @@
     usbutils
     pciutils
     nixpkgs-fmt
-    flakeArgs.nixpkgs-review-checks.packages.${pkgs.system}.nixpkgs-review-checks
+    nixpkgs-review
+    nixpkgs-hammering
     unar
     unzip
     p7zip

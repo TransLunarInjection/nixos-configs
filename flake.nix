@@ -21,24 +21,12 @@
     thoth-reminder-bot.url = "github:mmk150/reminder_bot";
     thoth-reminder-bot.inputs.nixpkgs.follows = "nixpkgs";
     thoth-reminder-bot.inputs.flake-utils.follows = "flake-utils";
-    nixpkgs-review-checks.url = "github:SuperSandro2000/nixpkgs-review-checks";
-    nixpkgs-review-checks.inputs.nixpkgs.follows = "nixpkgs";
-    nixpkgs-review-checks.inputs.flake-utils.follows = "flake-utils";
     deploy-rs.url = "github:serokell/deploy-rs";
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
     openxr-nix-flake.url = "github:LunNova/openxr-nix-flake";
     openxr-nix-flake.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
-    lix = {
-      url = "git+https://git@git.lix.systems/lix-project/lix";
-      flake = false;
-    };
-    kde2nix = {
-      url = "github:nix-community/kde2nix/main";
-      # currently uses special branch
-      # inputs.nixpkgs.follows = "nixpkgs";
-    };
     crane.url = "github:ipetkov/crane";
     advisory-db = {
       url = "github:rustsec/advisory-db";
