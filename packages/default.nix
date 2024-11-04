@@ -59,6 +59,7 @@ let
       exec "${lun-scripts-path}/bin/$1" "''${@:2}"
     '';
     rogdrv = pkgs.callPackage ./rogdrv { };
+    switchtec-user = pkgs.callPackage ./switchtec-user { };
     svpflow = pkgs.callPackage ./svpflow { };
     # inherit (flakeArgs.nixpkgs-mesa-pr.legacyPackages.${pkgs.system}) mesa;
     mesa = mesaOverride pkgs.mesa;
