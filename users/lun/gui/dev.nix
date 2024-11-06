@@ -27,7 +27,7 @@ in
       imhex
       meld # graphical diff, lets you paste in pretty easily
       nurl # nix-prefetch-url but better
-    ] ++ lib.optionals lun-profiles.personal [
+    ] ++ lib.optionals (lun-profiles.personal && pkgs.system == "x86_64-linux") [
       flakeArgs.deploy-rs.packages.${pkgs.system}.default
       # waylandn't
       # pkgs.lun.compositor-killer # FIXME: wayland-scanner not found
