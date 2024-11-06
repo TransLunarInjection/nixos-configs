@@ -36,6 +36,7 @@
     nixpkgs-fmt
     nixpkgs-review
     nixpkgs-hammering
+    gh
     unar
     unzip
     p7zip
