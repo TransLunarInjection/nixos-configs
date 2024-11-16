@@ -101,46 +101,51 @@
         test-vm = allSystems.makeHost.x86_64-linux ./hosts/test-vm;
         router-nixos = allSystems.makeHost.x86_64-linux ./hosts/router;
         tsukiakari-nixos = allSystems.makeHost.x86_64-linux ./hosts/tsukiakari;
+        tsukikage-nixos = allSystems.makeHost.x86_64-linux ./hosts/tsukikage;
+        hoshitsuki-nixos = allSystems.makeHost.x86_64-linux ./hosts/hoshitsuki;
         lun-kosame-nixos = allSystems.makeHost.x86_64-linux ./hosts/kosame;
         lun-hisame-nixos = allSystems.makeHost.x86_64-linux ./hosts/hisame;
+        lun-shigure = allSystems.makeHost.x86_64-linux ./hosts/shigure;
         lun-amayadori-nixos = allSystems.makeHost.aarch64-linux ./hosts/amayadori;
+        builder-nixos = allSystems.makeHost.x86_64-linux ./hosts/builder;
       };
 
-      deploy.nodes.router = {
-        hostname = "10.5.5.1"; # "router-nixos";
-        profiles.system = {
-          sshUser = "lun";
-          user = "root";
-          path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.router-nixos;
+      deploy =
+        let
+          mkNode = { name, hostname ? "${name}-nixos", fast ? false, cfg ? self.nixosConfigurations.${hostname} }: {
+            inherit hostname;
+            #interactiveSudo = true;
+            profiles.system = {
+              sshUser = "deployer";
+              user = "root";
+              path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos cfg;
+            };
+            remoteBuild = fast;
+          };
+        in
+        {
+          nodes.router = mkNode { name = "router"; };
+          nodes.tsukiakari = mkNode { name = "tsukiakari"; fast = true; };
+          nodes.tsukikage = mkNode { name = "tsukikage"; fast = true; };
+          nodes.shigure = mkNode { name = "shigure"; fast = true; };
+          nodes.testSingleServiceDeployAsLunOnLocalhost = {
+            hostname = "localhost";
+            profiles.serviceTest = serviceTest.hmProfile {
+              inherit (flakeArgs) deploy-rs;
+              inherit (flakeArgs.nixpkgs) lib;
+              inherit (flakeArgs.self.homeConfigurations.x86_64-linux.lun) pkgs;
+              user = "lun";
+              profileName = "lunHello";
+              modules = [
+                serviceTest.helloWorldModule
+              ];
+              hm = import "${flakeArgs.home-manager}/modules";
+              postActivate = ''
+                systemctl --user reload-or-restart hello
+                systemctl --user status hello --lines=1 || true
+              '';
+            };
+          };
         };
-      };
-      deploy.nodes.tsukiakari = {
-        hostname = "tsukiakari-nixos";
-        interactiveSudo = true;
-        profiles.system = {
-          sshUser = "lun";
-          user = "root";
-          path = flakeArgs.deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.tsukiakari-nixos;
-        };
-        remoteBuild = true;
-      };
-      deploy.nodes.testSingleServiceDeployAsLunOnLocalhost = {
-        hostname = "localhost";
-        profiles.serviceTest = serviceTest.hmProfile {
-          inherit (flakeArgs) deploy-rs;
-          inherit (flakeArgs.nixpkgs) lib;
-          inherit (flakeArgs.self.homeConfigurations.x86_64-linux.lun) pkgs;
-          user = "lun";
-          profileName = "lunHello";
-          modules = [
-            serviceTest.helloWorldModule
-          ];
-          hm = import "${flakeArgs.home-manager}/modules";
-          postActivate = ''
-            systemctl --user reload-or-restart hello
-            systemctl --user status hello --lines=1 || true
-          '';
-        };
-      };
     } // allSystems;
 }
