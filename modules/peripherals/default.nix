@@ -5,7 +5,9 @@ in
 {
   config = lib.mkMerge [
     {
-      services.fwupd.enable = true;
+      # FIXME: causes spurious GPU resumes https://lunnova.dev/articles/linux-gpu-runpm-spurious-resumes/
+      # would prefer to enable
+      services.fwupd.enable = false;
       hardware.wirelessRegulatoryDatabase = true;
       hardware.enableRedistributableFirmware = true;
 
