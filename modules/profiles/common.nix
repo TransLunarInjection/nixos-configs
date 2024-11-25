@@ -90,7 +90,7 @@
     # BOOT
     boot = {
       initrd.availableKernelModules = lib.mkIf (pkgs.system == "x86_64-linux") [ "nvme" "ahci" "xhci_pci" "usb_storage" "usbhid" "sd_mod" ];
-      initrd.kernelModules = [ ];
+      initrd.kernelModules = [ "tcp_bbr" ];
       kernelParams = [
         "sysrq_always_enabled"
         "fsck.mode=force"
@@ -112,9 +112,24 @@
       sudo.execWheelOnly = true;
       doas.enable = true;
     };
-    # https://github.com/NixOS/nixpkgs/blob/d6fe32c6b9059a054ca0cda9a2bb99753d1134df/nixos/modules/profiles/hardened.nix#L95
     boot.kernel.sysctl = with lib; {
-      "kernel.sysrq" = 1; #allow all sysrqs
+      "net.core.default_qdisc" = lib.mkDefault "fq";
+      "net.ipv4.tcp_congestion_control" = lib.mkForce "bbr";
+
+      # https://blog.cloudflare.com/optimizing-tcp-for-high-throughput-and-low-latency/
+      "net.ipv4.tcp_rmem" = "8192 262144 536870912";
+      "net.ipv4.tcp_wmem" = "4096 16384 536870912";
+      "net.ipv4.tcp_adv_win_scale" = "-2";
+      "net.ipv4.tcp_collapse_max_bytes" = "6291456"; # FIXME: needs patch https://github.com/cloudflare/linux/blob/master/patches/0014-add-a-sysctl-to-enable-disable-tcp_collapse-logic.patch
+      "net.ipv4.tcp_notsent_lowat" = "131072";
+
+      # Ignore broadcast ICMP (mitigate SMURF)
+      "net.ipv4.icmp_echo_ignore_broadcasts" = mkDefault true;
+
+      #allow all sysrqs
+      "kernel.sysrq" = 1;
+
+      # https://github.com/NixOS/nixpkgs/blob/d6fe32c6b9059a054ca0cda9a2bb99753d1134df/nixos/modules/profiles/hardened.nix#L95
       # Enable strict reverse path filtering (that is, do not attempt to route
       # packets that "obviously" do not belong to the iface's network; dropped
       # packets are logged as martians).
@@ -122,9 +137,6 @@
       "net.ipv4.conf.all.rp_filter" = mkDefault "1";
       "net.ipv4.conf.default.log_martians" = mkDefault true;
       "net.ipv4.conf.default.rp_filter" = mkDefault "1";
-
-      # Ignore broadcast ICMP (mitigate SMURF)
-      "net.ipv4.icmp_echo_ignore_broadcasts" = mkDefault true;
 
       # Ignore incoming ICMP redirects (note: default is needed to ensure that the
       # setting is applied to interfaces added after the sysctls are set)
