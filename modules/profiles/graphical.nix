@@ -6,6 +6,7 @@
     # Enable the X11 windowing system.
     services.xserver.enable = true;
     services.displayManager.sddm.enable = true;
+    programs.ssh.askPassword = "${pkgs.x11_ssh_askpass}/libexec/x11-ssh-askpass";
     # services.displayManager.sddm.wayland.enable = lib.mkDefault true;
     # services.displayManager.gdm.enable = true;
     # services.displayManager.gdm.wayland = true;
