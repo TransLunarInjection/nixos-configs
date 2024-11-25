@@ -14,6 +14,7 @@ let
       #   some-package = ...
       # })
       flakeArgs.self.overlays.default
+      flakeArgs.nixos-cosmic.overlays.default
       (import ./overlay-nixpkgs.nix { inherit flakeArgs; })
     ];
   };
