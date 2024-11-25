@@ -9,6 +9,7 @@ in
   imports = [
     ./disks.nix
     flakeArgs.disko.nixosModules.disko
+    flakeArgs.nixos-cosmic.nixosModules.default
   ];
   config = {
     networking.hostName = "lun-${name}";
@@ -16,7 +17,7 @@ in
     system.stateVersion = "24.11";
 
     boot.loader.systemd-boot.consoleMode = "max";
-    console.font = "ter-v12n";
+    console.font = lib.mkForce "ter-v12n";
     console.packages = [ pkgs.terminus_font ];
     boot.kernelParams = [
       "nosplash"
@@ -27,6 +28,11 @@ in
       "iommu=off" # AMD recommend disabling iommu for ML loads
       "mem_encrypt=off"
     ];
+
+    services.displayManager.cosmic-greeter.enable = true;
+    services.displayManager.sddm.enable = lib.mkForce false;
+    services.desktopManager.cosmic.enable = true;
+    security.pam.services.cosmic-greeter = { };
 
     services.udev.packages = [ pkgs.i2c-tools ];
     environment.systemPackages = [
@@ -45,11 +51,11 @@ in
     boot.plymouth.enable = lib.mkForce false;
     services.power-profiles-daemon.enable = true;
     lun.amd-pstate.enable = true;
-    # services.xserver.videoDrivers = [ "amdgpu" ];
-    # lun.ml = {
-    #   enable = true;
-    #   gpus = [ "amd" ];
-    # };
+    services.xserver.videoDrivers = [ "amdgpu" ];
+    lun.ml = {
+      enable = true;
+      gpus = [ "amd" ];
+    };
 
     hardware.cpu.amd.updateMicrocode = true;
     lun.profiles = {
@@ -59,20 +65,18 @@ in
     };
 
 
-    # services.beesd.filesystems =
-    #   let
-    #     opt = {
-    #       hashTableSizeMB = 768;
-    #       # logLevels = { emerg = 0; alert = 1; crit = 2; err = 3; warning = 4; notice = 5; info = 6; debug = 7; };
-    #       verbosity = "info";
-    #       extraOptions = [ "--loadavg-target" "2.0" "--thread-count" "2" ];
-    #     };
-    #   in
-    #   {
-    #     persist = opt // { spec = "PARTLABEL=${name}_persist"; };
-    #     mlA = opt // { spec = "LABEL=mlA"; };
-    #     mlB = opt // { spec = "PARTLABEL=mlB"; };
-    #   };
+    services.beesd.filesystems =
+      let
+        opt = {
+          hashTableSizeMB = 768;
+          # logLevels = { emerg = 0; alert = 1; crit = 2; err = 3; warning = 4; notice = 5; info = 6; debug = 7; };
+          verbosity = "info";
+          extraOptions = [ "--loadavg-target" "2.0" "--thread-count" "2" ];
+        };
+      in
+      {
+        persist = opt // { spec = "PARTLABEL=_persist"; };
+      };
     # using beesd so don't need to hardlink within store
     # avoids intellij bug where hardlinks make dirwatcher crash
     nix.settings.auto-optimise-store = lib.mkForce false;
@@ -116,32 +120,6 @@ in
         neededForBoot = true;
         options = [ "mode=1777" "rw" "nosuid" "nodev" "size=50G" ];
       };
-      # "/mnt/ml/A" = {
-      #   neededForBoot = false;
-      #   fsType = "btrfs";
-      #   device = "/dev/disk/by-label/mlA";
-      #   options = [ "nosuid" "nodev" ] ++ btrfsSsdOpts;
-      # };
-      # "/mnt/ml/B" = {
-      #   neededForBoot = false;
-      #   fsType = "btrfs";
-      #   device = "/dev/disk/by-partlabel/mlB";
-      #   options = [ "nosuid" "nodev" ] ++ btrfsSsdOpts;
-      # };
-      # "/vol/ml" = {
-      #   neededForBoot = false;
-      #   fsType = "fuse.mergerfs";
-      #   depends = [ "/mnt/ml/A" "/mnt/ml/B" ];
-      #   device = "/mnt/ml/*";
-      #   options = [
-      #     "cache.files=partial"
-      #     "category.create=mspmfs"
-      #     "dropcacheonclose=true"
-      #     "fsname=pool"
-      #     "minfreespace=32G"
-      #     "moveonenospc=true"
-      #   ];
-      # };
     };
     swapDevices = lib.optionals (swap != null) [{
       device = swap;
