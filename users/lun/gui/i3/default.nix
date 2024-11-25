@@ -96,6 +96,10 @@ in
         }
       ];
     };
+    # Start menu style drun on release
+    extraConfig = ''
+      bindcode --release 133 exec --no-startup-id ${drun}
+    '';
   };
   # ref https://github.com/workflow/nixos-config/blob/e559dbb5ce560084ce9249dd6febe721cb512d10/home/i3status-rust.nix#L76
   programs.i3status-rust = {
