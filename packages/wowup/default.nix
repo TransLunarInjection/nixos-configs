@@ -1,7 +1,8 @@
 { appimageTools, fetchurl, gsettings-desktop-schemas, gtk3 }:
 appimageTools.wrapType2 {
   # or wrapType1
-  name = "wowup";
+  pname = "wowup";
+  version = "v2.10.0";
   src = fetchurl {
     url = "https://github.com/WowUp/WowUp.CF/releases/download/v2.10.0/WowUp-CF-2.10.0.AppImage";
     hash = "sha256-u8rziod2RVSCaqSBgShqFeVrRo9MvHr7cCujSAYpULM=";
