@@ -15,7 +15,8 @@
       timeZone = "America/Los_Angeles";
     };
     services.xserver.xkb.layout = "us";
-
+    services.xserver.xkb.variant = "altgr-intl"; # «cool and new»
+    services.xserver.xkb.options = "compose:rwin"; # grp:caps_toggle,grp_led:scroll
     # CONSOLE
     console = {
       font = "Lat2-Terminus16";
