@@ -46,10 +46,6 @@ fi
 
 nix store gc --no-keep-derivations --no-keep-env-derivations
 
-if [ -d /nix/store/.links/ ]; then
-	nix store optimise
-fi
-
 sync
 
 # We probably just deleted a lot so TRIM all drives
