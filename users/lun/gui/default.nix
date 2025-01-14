@@ -26,7 +26,7 @@
 
     programs.firefox = {
       enable = true;
-      package = if (pkgs.system == "x86_64-linux") then pkgs.firefox-bin else pkgs.firefox;
+      package = pkgs.firefox;
     };
 
     # workaround https://github.com/nix-community/home-manager/issues/2064#issuecomment-887300055
