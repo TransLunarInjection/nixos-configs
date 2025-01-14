@@ -171,7 +171,6 @@
       wget
       curl
       nano
-      # kate
       ripgrep
       fd
       killall
