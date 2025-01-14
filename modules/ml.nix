@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.lun.ml;
   virtualisation = config.virtualisation.podman.enable or config.virtualisation.docker.enable;
@@ -22,11 +22,7 @@ in
     })
     (lib.mkIf (virtualisation && amd) {
       # TODO: anything else needed?
-      hardware.graphics.extraPackages = [
-        pkgs.rocmPackages.rocm-opencl-icd
-        pkgs.rocmPackages.rocm-opencl-runtime
-        pkgs.rocmPackages.rocm-runtime
-      ];
+      hardware.graphics.extraPackages = [ ];
     })
   ]);
 }
