@@ -18,7 +18,17 @@ done
 
 sleep 1
 
-echo "pp_power_profile_mode: active mode has *"
-cat /sys/class/drm/card0/device/pp_power_profile_mode
-echo "mclks ""$(cat /sys/class/drm/card*/device/pp_dpm_mclk)"
-echo "fclks ""$(cat /sys/class/drm/card*/device/pp_dpm_fclk)"
+for card in /sys/class/drm/card[0-9]; do
+	if [ -f "$card/device/pp_power_profile_mode" ]; then
+		echo "Card $card pp_power_profile_mode: active mode has *"
+		cat "$card/device/pp_power_profile_mode"
+	fi
+
+	if [ -f "$card/device/pp_dpm_mclk" ]; then
+		echo "Card $card mclks: $(cat "$card/device/pp_dpm_mclk")"
+	fi
+
+	if [ -f "$card/device/pp_dpm_fclk" ]; then
+		echo "Card $card fclks: $(cat "$card/device/pp_dpm_fclk")"
+	fi
+done
