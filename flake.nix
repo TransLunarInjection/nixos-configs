@@ -112,9 +112,9 @@
 
       deploy =
         let
-          mkNode = { name, hostname ? "${name}-nixos", fast ? false, cfg ? self.nixosConfigurations.${hostname} }: {
+          mkNode = { name, hostname ? "${name}-nixos", fast ? false, cfg ? self.nixosConfigurations.${name + "-nixos"} }: {
             inherit hostname;
-            #interactiveSudo = true;
+            # interactiveSudo = true;
             profiles.system = {
               sshUser = "deployer";
               user = "root";
@@ -124,10 +124,11 @@
           };
         in
         {
-          nodes.router = mkNode { name = "router"; };
+          nodes.router = mkNode { name = "router"; hostname = "10.5.5.1"; };
           nodes.tsukiakari = mkNode { name = "tsukiakari"; fast = true; };
           nodes.tsukikage = mkNode { name = "tsukikage"; fast = true; };
           nodes.shigure = mkNode { name = "shigure"; fast = true; };
+          nodes.hoshitsuki = mkNode { name = "hoshitsuki"; fast = true; };
           nodes.testSingleServiceDeployAsLunOnLocalhost = {
             hostname = "localhost";
             profiles.serviceTest = serviceTest.hmProfile {
