@@ -114,10 +114,13 @@
       doas.enable = true;
     };
     boot.kernel.sysctl = with lib; {
-      "net.core.default_qdisc" = lib.mkDefault "fq";
-      "net.ipv4.tcp_congestion_control" = lib.mkForce "bbr";
+      "net.core.default_qdisc" = "fq"; # fq best if using bbr https://groups.google.com/g/bbr-dev/c/4jL4ropdOV8
+      "net.ipv4.tcp_ecn" = 0; # ECN has been misbehaving locally, don't know why
+      "net.ipv4.tcp_congestion_control" = "bbr";
 
       # https://blog.cloudflare.com/optimizing-tcp-for-high-throughput-and-low-latency/
+      "net.core.wmem_max" = 536870912;
+      "net.core.rmem_max" = 536870912;
       "net.ipv4.tcp_rmem" = "8192 262144 536870912";
       "net.ipv4.tcp_wmem" = "4096 16384 536870912";
       "net.ipv4.tcp_adv_win_scale" = "-2";
