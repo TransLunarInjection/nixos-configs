@@ -11,9 +11,16 @@
     # services.displayManager.gdm.enable = true;
     # services.displayManager.gdm.wayland = true;
     # services.displayManager.gdm.nvidiaWayland = true;
-    environment.systemPackages = lib.mkIf config.services.xserver.desktopManager.plasma5.enable [
-      pkgs.sddm-kcm # KDE settings panel for sddm
-      pkgs.libsForQt5.bismuth # KDE tiling plugin
+    environment.systemPackages = lib.mkMerge [
+      (lib.mkIf config.services.xserver.desktopManager.plasma5.enable [
+        pkgs.sddm-kcm # KDE settings panel for sddm
+        pkgs.libsForQt5.bismuth # KDE tiling plugin
+      ]
+      )
+      [
+        pkgs.kdePackages.kate
+        pkgs.kdePackages.kamera
+      ]
     ];
     services.xserver.desktopManager.plasma5.enable = true;
     services.xserver.desktopManager.plasma5.runUsingSystemd = true;
