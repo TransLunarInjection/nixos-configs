@@ -249,7 +249,16 @@ in
         domain = netFqdn;
         local = "/${netFqdn}/";
         # FIXME: need to listen on V6
-        listen-address = "::1,127.0.0.1,${lanV4Self}";
+        listen-address = "::1,127.0.0.1,${lanV4Self},${selfULA}";
+        # Explicitly set router's address and turn off /etc/hosts
+        # Fixes strange issue where router.fqdn resolved AAAA ::1
+        address = [
+          "/router.${netFqdn}/${lanV4Self}"
+          "/router.${netFqdn}/${selfULA}"
+          "/${config.networking.hostName}.${netFqdn}/${lanV4Self}"
+          "/${config.networking.hostName}.${netFqdn}/${selfULA}"
+        ];
+        no-hosts = true;
         dhcp-authoritative = true;
         dhcp-range = "${lanV4Subnet}.50,${lanV4Subnet}.254,24h";
         dhcp-option = [
