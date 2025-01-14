@@ -36,8 +36,21 @@ in
       hardware.ledger.enable = true;
 
       # udev rules and package for vial keyboard remapper
-      services.udev.packages = [ pkgs.lun.vial.udev-rule-vial-serial ] ++ crPackages;
-      environment.systemPackages = [ pkgs.lun.vial pkgs.barrier pkgs.openssl ] ++ crPackages;
+      services.udev.packages = [
+        pkgs.lun.vial.udev-rule-vial-serial
+        pkgs.android-udev-rules
+        pkgs.libmtp.out
+        pkgs.kdePackages.kio-extras
+      ] ++ crPackages;
+      environment.systemPackages = [
+        pkgs.lun.vial
+        pkgs.barrier
+        pkgs.openssl
+        pkgs.jmtpfs
+        pkgs.libmtp
+        pkgs.kdePackages.kio-extras
+        pkgs.kdePackages.kio-admin
+      ] ++ crPackages;
 
       programs.noisetorch.enable = true;
       networking.firewall.allowedTCPPorts = [ 24800 ];
