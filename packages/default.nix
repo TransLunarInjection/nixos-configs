@@ -105,6 +105,7 @@ let
         ./wine/log-NtWriteVirtualMemory.patch
         ./wine/log-NtProtectVirtualMemory.patch
       ];
+      NIX_CFLAGS_COMPILE = (old.NIX_CFLAGS_COMPILE or "") + " -w -Wno-incompatible-pointer-types";
     })).override {
       supportFlags = {
         gettextSupport = true;
