@@ -19,8 +19,6 @@ in
     (lib.mkIf (virtualisation && nvidia) {
       virtualisation.docker.enableNvidia = true;
       virtualisation.podman.enableNvidia = true;
-      # https://github.com/NixOS/nixpkgs/issues/127146
-      systemd.enableUnifiedCgroupHierarchy = false;
     })
     (lib.mkIf (virtualisation && amd) {
       # TODO: anything else needed?
