@@ -43,7 +43,7 @@ in
   services.displayManager.defaultSession = "none+i3";
   lun.virtualisation.enable = lib.mkForce false;
 
-
+  services.udisks2.enable = true; # required for automounting with udiskie
   boot.plymouth.enable = lib.mkForce false;
 
   networking.hostName = "lun-amayadori-nixos";
