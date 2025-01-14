@@ -9,7 +9,6 @@
       # I also haven't found an easy way to make removeable storage mount with sync option
       "vm.dirty_bytes" = 1024 * 1024 * 512;
       "vm.dirty_background_bytes" = 1024 * 1024 * 32;
-      "net.core.default_qdisc" = "fq_codel";
     };
   };
 }
