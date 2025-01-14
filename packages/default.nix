@@ -84,6 +84,7 @@ let
     # FIXME: this is upstreamed?
     tabby = pkgs.callPackage ./tabby { };
     cursorai = pkgs.callPackage ./cursorai { };
+    rmc = pkgs.python3Packages.callPackage ./rmc { };
     wowup = pkgs.callPackage ./wowup { };
     lutris = pkgs.lutris.override {
       extraLibraries = pkgs: with pkgs; [
