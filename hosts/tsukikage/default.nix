@@ -1,7 +1,7 @@
 { pkgs, flakeArgs, lib, ... }:
 let
   name = "tsukikage";
-  swap = null;
+  swap = "/dev/disk/by-partlabel/${name}_swap";
   btrfsOpts = [ "rw" "noatime" "compress=zstd" "space_cache=v2" "noatime" "autodefrag" ];
   btrfsSsdOpts = btrfsOpts ++ [ "ssd" "discard=async" ];
 in
@@ -87,6 +87,8 @@ in
     users.mutableUsers = false;
     my.home-manager.enabled-users = [ "lun" ];
     lun.persistence.enable = true;
+    zramSwap.enable = true;
+    zramSwap.memoryPercent = 30;
     fileSystems = {
       "/" = {
         device = "tmpfs";
