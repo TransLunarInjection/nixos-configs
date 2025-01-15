@@ -91,7 +91,7 @@
     # BOOT
     boot = {
       initrd.availableKernelModules = lib.mkIf (pkgs.system == "x86_64-linux") [ "nvme" "ahci" "xhci_pci" "usb_storage" "usbhid" "sd_mod" ];
-      initrd.kernelModules = [ "tcp_bbr" ];
+      initrd.kernelModules = [ "tcp_bbr" "sch_cake" ];
       kernelParams = [
         "sysrq_always_enabled"
         "fsck.mode=force"
