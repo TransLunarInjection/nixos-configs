@@ -414,8 +414,15 @@ in
         };
       };
     networking.firewall = {
-      allowedTCPPorts = [ 45982 ];
-      allowedUDPPorts = [ 45982 ];
+      allowedTCPPorts = [
+        45982 # xmission
+        22000 # syncthing (hisame stays on LAN)
+      ];
+      allowedUDPPorts = [
+        45982 # xmission
+        21027 # syncthing (hisame stays on LAN)
+        22000 # syncthing (hisame stays on LAN)
+      ];
     };
     # don't have enough ram for 32j/32c to make sense for all builds
     nix.settings.max-jobs = 5;
