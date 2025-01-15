@@ -96,7 +96,6 @@
         "sysrq_always_enabled"
         "fsck.mode=force"
       ];
-      kernelModules = lib.mkIf (pkgs.system == "x86_64-linux") [ "kvm-amd" "kvm-intel" ];
       extraModulePackages = [ ];
       tmp.cleanOnBoot = true;
     };
