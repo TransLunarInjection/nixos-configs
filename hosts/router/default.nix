@@ -424,7 +424,12 @@ in
         };
       };
 
-    environment.systemPackages = [ nixos-cake pkgs.netsniff-ng pkgs.ethtool pkgs.iftop ];
+    environment.systemPackages = [
+      nixos-cake
+      # pkgs.netsniff-ng # build fails
+      pkgs.ethtool
+      pkgs.iftop
+    ];
 
     lun.persistence.enable = true;
     fileSystems = {
