@@ -21,16 +21,16 @@ in
     ];
 
     boot.loader.systemd-boot.consoleMode = "max";
-    console.font = "ter-v12n";
-    console.packages = [ pkgs.terminus_font ];
     boot.kernelParams = [
       "nosplash"
       "fbcon=font:VGA8x8"
       "pcie_port_pm=force" # force pm on even if not wanted by platform
       "pcie_aspm=force" # force link state
       "tsc=nowatchdog,reliable" # trust tsc, modern AMD platform
-      "iommu=off" # AMD recommend disabling iommu for ML loads
+      "iommu=pt"
       "mem_encrypt=off"
+      "amdgpu.aspm=1"
+      # "amdgpu.runpm=1111"
     ];
 
     services.udev.packages = [ pkgs.i2c-tools ];
@@ -41,8 +41,22 @@ in
       pkgs.mergerfs
       pkgs.mergerfs-tools
     ];
+    systemd.services."systemd-machined".enable = false;
     boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
-    # boot.kernelPatches = [];
+    boot.kernelPatches = [
+      {
+        name = "lun-cfg";
+        patch = null;
+        extraConfig = ''
+          HSA_AMD y
+          PCI_P2PDMA y
+          DMABUF_MOVE_NOTIFY y
+          HSA_AMD_P2P y
+          PCI_SW_SWITCHTEC y
+          FONT_TER16x32 n
+        '';
+      }
+    ];
     lun.efi-tools.enable = true;
     lun.power-saving.enable = true;
     services.nscd.enableNsncd = true;
@@ -54,11 +68,11 @@ in
     services.xserver.autorun = false;
     services.power-profiles-daemon.enable = true;
     lun.amd-pstate.enable = true;
-    # services.xserver.videoDrivers = [ "amdgpu" ];
-    # lun.ml = {
-    #   enable = true;
-    #   gpus = [ "amd" ];
-    # };
+    services.xserver.videoDrivers = [ "amdgpu" ];
+    lun.ml = {
+      enable = true;
+      gpus = [ "amd" ];
+    };
 
     hardware.cpu.amd.updateMicrocode = true;
 
