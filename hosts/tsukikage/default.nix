@@ -134,7 +134,7 @@ in
         fsType = "tmpfs";
         device = "tmpfs";
         neededForBoot = true;
-        options = [ "mode=1777" "rw" "nosuid" "nodev" "size=50G" ];
+        options = [ "mode=1777" "rw" "nosuid" "nodev" "size=96G" ];
       };
       # "/mnt/ml/A" = {
       #   neededForBoot = false;
