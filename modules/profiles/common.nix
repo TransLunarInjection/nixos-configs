@@ -19,7 +19,7 @@
     services.xserver.xkb.options = "compose:rwin"; # grp:caps_toggle,grp_led:scroll
     # CONSOLE
     console = {
-      font = "Lat2-Terminus16";
+      font = "${pkgs.terminus_font}/share/consolefonts/ter-u12n.psf.gz";
       keyMap = "us";
     };
     # Persist console when getty starts
