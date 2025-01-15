@@ -1,0 +1,203 @@
+diff --git a/drivers/gpu/drm/ast/ast_drv.c b/drivers/gpu/drm/ast/ast_drv.c
+index 225817087b4d..d4fe800c6249 100644
+--- a/drivers/gpu/drm/ast/ast_drv.c
++++ b/drivers/gpu/drm/ast/ast_drv.c
+@@ -271,12 +271,13 @@ static int ast_detect_chip(struct pci_dev *pdev,
+ static int ast_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	struct device *dev = &pdev->dev;
+-	int ret;
++	int ret, i;
+ 	void __iomem *regs;
+ 	void __iomem *ioregs;
+ 	enum ast_config_mode config_mode;
+ 	enum ast_chip chip;
+ 	struct drm_device *drm;
++	struct resource *res;
+ 	bool need_post = false;
+ 
+ 	ret = drm_aperture_remove_conflicting_pci_framebuffers(pdev, &ast_driver);
+@@ -287,6 +288,14 @@ static int ast_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (ret)
+ 		return ret;
+ 
++	/* Modify flags for all memory BARs */
++	for (i = 0; i < 1; i++) {
++		res = &pdev->resource[i];
++		if (res->flags & IORESOURCE_MEM) {
++			res->flags |= IORESOURCE_PREFETCH;
++		}
++	}
++
+ 	regs = pcim_iomap(pdev, 1, 0);
+ 	if (!regs)
+ 		return -EIO;
+diff --git a/drivers/gpu/drm/ast/ast_mm.c b/drivers/gpu/drm/ast/ast_mm.c
+index 6dfe6d9777d4..5bc6efd6b918 100644
+--- a/drivers/gpu/drm/ast/ast_mm.c
++++ b/drivers/gpu/drm/ast/ast_mm.c
+@@ -87,7 +87,7 @@ int ast_mm_init(struct ast_device *ast)
+ 
+ 	vram_size = ast_get_vram_size(ast);
+ 
+-	ast->vram = devm_ioremap_wc(dev->dev, base, vram_size);
++	ast->vram = devm_ioremap_wb(dev->dev, base, vram_size);
+ 	if (!ast->vram)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/gpu/drm/ast/ast_mode.c b/drivers/gpu/drm/ast/ast_mode.c
+index 049ee1477c33..b770ec73c84f 100644
+--- a/drivers/gpu/drm/ast/ast_mode.c
++++ b/drivers/gpu/drm/ast/ast_mode.c
+@@ -556,7 +556,7 @@ static void ast_set_start_address_crt1(struct ast_device *ast,
+ 
+ static void ast_wait_for_vretrace(struct ast_device *ast)
+ {
+-	unsigned long timeout = jiffies + HZ;
++	unsigned long timeout = jiffies + HZ / 2;
+ 	u8 vgair1;
+ 
+ 	do {
+@@ -665,6 +665,10 @@ static void ast_primary_plane_helper_atomic_update(struct drm_plane *plane,
+ 
+ 	drm_atomic_helper_damage_iter_init(&iter, old_plane_state, plane_state);
+ 	drm_atomic_for_each_plane_damage(&iter, &damage) {
++		// struct drm_rect dst_clip = plane_state->dst;
++
++		// if (!drm_rect_intersect(&dst_clip, &damage))
++		// 	continue;
+ 		ast_handle_damage(ast_plane, shadow_plane_state->data, fb, &damage);
+ 	}
+ 
+diff --git a/drivers/gpu/drm/drm_format_helper.c b/drivers/gpu/drm/drm_format_helper.c
+index b1be458ed4dd..91ea454a4382 100644
+--- a/drivers/gpu/drm/drm_format_helper.c
++++ b/drivers/gpu/drm/drm_format_helper.c
+@@ -244,6 +244,45 @@ static int drm_fb_xfrm(struct iosys_map *dst,
+ 				     xfrm_line);
+ }
+ 
++static inline void iosys_map_memcpy_to_JANK(struct iosys_map *dst, size_t dst_offset,
++				       const void *src, size_t len)
++{
++	if (dst->is_iomem) {
++		memcpy_toio(dst->vaddr_iomem + dst_offset, src, len);
++		// FIXME: use iowrite64 in a loop (handle start/end unaligned parts separately)
++		// void __iomem *iodst = dst->vaddr_iomem + dst_offset;
++		// const u8 *src_buf = src;
++		// size_t n = len;
++
++		// /* single byte write unaligned prelude of dest */
++		// size_t b = (unsigned long)iodst & 7;
++		// if (unlikely(b)) {
++		// 	writesb(iodst, src_buf, b);
++		// 	src_buf += b;
++		// 	iodst += b;
++		// 	n -= b;
++		// }
++
++		// /* 8 byte write bulk */
++		// if (n >= 8) {
++		// 	size_t n8 = n >> 3;
++		// 	writesq(iodst, src_buf, n8);
++		// 	src_buf += n8 << 3;
++		// 	iodst += n8 << 3;
++		// 	n &= 7;
++		// }
++
++		// /* Handle remaining bytes */
++		// if (unlikely(n)) {
++		// 	writesb(iodst, src_buf, n);
++		// }
++
++		// mb();ioremap_change_attr
++	}
++	else
++		memcpy(dst->vaddr + dst_offset, src, len);
++}
++
+ /**
+  * drm_fb_memcpy - Copy clip buffer
+  * @dst: Array of destination buffers
+@@ -273,6 +312,8 @@ void drm_fb_memcpy(struct iosys_map *dst, const unsigned int *dst_pitch,
+ 	const struct drm_format_info *format = fb->format;
+ 	unsigned int i, y, lines = drm_rect_height(clip);
+ 
++	if (lines == 0) return;
++
+ 	if (!dst_pitch)
+ 		dst_pitch = default_dst_pitch;
+ 
+@@ -288,12 +329,23 @@ void drm_fb_memcpy(struct iosys_map *dst, const unsigned int *dst_pitch,
+ 			dst_pitch_i = len_i;
+ 
+ 		iosys_map_incr(&src_i, clip_offset(clip, fb->pitches[i], cpp_i));
++		if (0 && dst_pitch_i == fb->pitches[i] /* Same pitch */) {
++			/* Copy entire plane at once */
++			size_t total_size = dst_pitch_i * lines;
++			iosys_map_memcpy_to_JANK(&dst_i, 0, src_i.vaddr, total_size);
++			iosys_map_incr(&src_i, total_size);
++			iosys_map_incr(&dst_i, total_size);
++		} else {
++			// DRM_INFO("line by line copy for fb due to pitch mismatch. %d, %d, %d\n",
++			// 	       dst_pitch_i, fb->pitches[i], len_i);
++			/* Fall back to line-by-line copy */
+ 		for (y = 0; y < lines; y++) {
+ 			/* TODO: handle src_i in I/O memory here */
+ 			iosys_map_memcpy_to(&dst_i, 0, src_i.vaddr, len_i);
+ 			iosys_map_incr(&src_i, fb->pitches[i]);
+ 			iosys_map_incr(&dst_i, dst_pitch_i);
+ 		}
++		}
+ 	}
+ }
+ EXPORT_SYMBOL(drm_fb_memcpy);
+diff --git a/include/linux/io.h b/include/linux/io.h
+index 59ec5eea696c..edae3974c103 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -73,6 +73,8 @@ void __iomem *devm_ioremap_uc(struct device *dev, resource_size_t offset,
+ 				   resource_size_t size);
+ void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
+ 				   resource_size_t size);
++void __iomem *devm_ioremap_wb(struct device *dev, resource_size_t offset,
++				   resource_size_t size);
+ void devm_iounmap(struct device *dev, void __iomem *addr);
+ int check_signature(const volatile void __iomem *io_addr,
+ 			const unsigned char *signature, int length);
+diff --git a/lib/devres.c b/lib/devres.c
+index 4fc152de6d8b..c9d514202c67 100644
+--- a/lib/devres.c
++++ b/lib/devres.c
+@@ -14,6 +14,7 @@ enum devm_ioremap_type {
+ 	DEVM_IOREMAP_UC,
+ 	DEVM_IOREMAP_WC,
+ 	DEVM_IOREMAP_NP,
++	DEVM_IOREMAP_WB,
+ };
+ 
+ void devm_ioremap_release(struct device *dev, void *res)
+@@ -47,6 +48,9 @@ static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
+ 	case DEVM_IOREMAP_WC:
+ 		addr = ioremap_wc(offset, size);
+ 		break;
++	case DEVM_IOREMAP_WB:
++		addr = ioremap_cache(offset, size);
++		break;
+ 	case DEVM_IOREMAP_NP:
+ 		addr = ioremap_np(offset, size);
+ 		break;
+@@ -106,6 +110,13 @@ void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
+ }
+ EXPORT_SYMBOL(devm_ioremap_wc);
+ 
++void __iomem *devm_ioremap_wb(struct device *dev, resource_size_t offset,
++			      resource_size_t size)
++{
++	return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_WB);
++}
++EXPORT_SYMBOL(devm_ioremap_wb);
++
+ /**
+  * devm_iounmap - Managed iounmap()
+  * @dev: Generic device to unmap for

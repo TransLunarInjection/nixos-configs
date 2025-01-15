@@ -1,0 +1,27 @@
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+index bcacf2e35eba..74129308499b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+@@ -361,6 +363,22 @@ void amdgpu_device_detect_runtime_pm_mode(struct amdgpu_device *adev)
+ 	bamaco_support = amdgpu_device_supports_baco(dev);
+ 
+ 	switch (amdgpu_runtime_pm) {
++	case 1114:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_PX;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_PX for runtime pm\n");
++		break;
++	case 1113:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BOCO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BOCO for runtime pm\n");
++		break;
++	case 1112:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BAMACO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BAMACO for runtime pm\n");
++		break;
++	case 1111:
++		adev->pm.rpm_mode = AMDGPU_RUNPM_BACO;
++		dev_info(adev->dev, "HACK ~lun Forcing AMDGPU_RUNPM_BACO for runtime pm\n");
++		break;
+ 	case 2:
+ 		if (bamaco_support & MACO_SUPPORT) {
+ 			adev->pm.rpm_mode = AMDGPU_RUNPM_BAMACO;

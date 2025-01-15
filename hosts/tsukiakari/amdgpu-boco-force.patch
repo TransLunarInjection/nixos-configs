@@ -92,7 +92,7 @@ index bcacf2e35eba..74129308499b 100644
  
  	if (!(adev->flags & AMD_IS_APU)) {
 diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-index e2382566af44..b006eb362bd1 100644
+index e2382566af44..2ec2b8eda418 100644
 --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
 @@ -148,6 +148,7 @@ char amdgpu_lockup_timeout[AMDGPU_MAX_TIMEOUT_PARAM_LENGTH];
@@ -134,7 +134,34 @@ index e2382566af44..b006eb362bd1 100644
  
  		/*
  		 * For runpm implemented via BACO, PMFW will handle the
-@@ -2768,6 +2776,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+@@ -2743,12 +2751,16 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+ 	 * platforms.
+ 	 * TODO: this may be also needed for PX capable platform.
+ 	 */
+-	if (adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO)
++	bool mp1_shutdown = false; //adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO || adev->pm.rpm_mode == AMDGPU_RUNPM_PX;
++	if (mp1_shutdown)
+ 		adev->mp1_state = PP_MP1_STATE_UNLOAD;
+ 
++	//smu_deep_sleep_control(adev->powerplay.pp_handle, false);
++
+ 	ret = amdgpu_device_prepare(drm_dev);
+ 	if (ret)
+ 		return ret;
++	//ret = amdgpu_device_ip_suspend(adev);
+ 	ret = amdgpu_device_suspend(drm_dev, false);
+ 	if (ret) {
+ 		adev->in_runpm = false;
+@@ -2757,7 +2769,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+ 		return ret;
+ 	}
+ 
+-	if (adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO)
++	if (mp1_shutdown)
+ 		adev->mp1_state = PP_MP1_STATE_NONE;
+ 
+ 	if (adev->pm.rpm_mode == AMDGPU_RUNPM_PX) {
+@@ -2768,6 +2780,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
  		pci_disable_device(pdev);
  		pci_ignore_hotplug(pdev);
  		pci_set_power_state(pdev, PCI_D3cold);
@@ -142,14 +169,41 @@ index e2382566af44..b006eb362bd1 100644
  		drm_dev->switch_power_state = DRM_SWITCH_POWER_DYNAMIC_OFF;
  	} else if (adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO) {
  		/* nothing to do */
-@@ -2776,6 +2785,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
+@@ -2776,6 +2789,7 @@ static int amdgpu_pmops_runtime_suspend(struct device *dev)
  		amdgpu_device_baco_enter(drm_dev);
  	}
  
-+	dev_info(&pdev->dev, "HACK ~lun amdgpu_pmops_runtime_suspend finished\n");
++	dev_info(&pdev->dev, "HACK ~lun amdgpu_pmops_runtime_suspend finished. mode %d\n", adev->pm.rpm_mode);
  	dev_dbg(&pdev->dev, "asic/device is runtime suspended\n");
  
  	return 0;
+@@ -2808,10 +2822,23 @@ static int amdgpu_pmops_runtime_resume(struct device *dev)
+ 			return ret;
+ 		pci_set_master(pdev);
+ 	} else if (adev->pm.rpm_mode == AMDGPU_RUNPM_BOCO) {
+-		/* Only need to handle PCI state in the driver for ATPX
+-		 * PCI core handles it for _PR3.
+-		 */
++		amdgpu_device_cache_pci_state(pdev);
++		pci_disable_device(pdev);
++		pci_ignore_hotplug(pdev);
++		pci_set_power_state(pdev, PCI_D3hot);
++		pci_set_power_state(pdev, PCI_D0);
++		pci_set_power_state(pdev, PCI_D3hot);
++		dev_info(&pdev->dev, "HACK ~lun pci_set_power_state PCI_D3cold\n");
++		drm_dev->switch_power_state = DRM_SWITCH_POWER_DYNAMIC_OFF;
++
++		drm_dev->switch_power_state = DRM_SWITCH_POWER_CHANGING;
++		pci_set_power_state(pdev, PCI_D0);
++		amdgpu_device_load_pci_state(pdev);
++		ret = pci_enable_device(pdev);
++		if (ret)
++			return ret;
+ 		pci_set_master(pdev);
++		drm_dev->switch_power_state = DRM_SWITCH_POWER_ON;
+ 	} else if ((adev->pm.rpm_mode == AMDGPU_RUNPM_BACO) ||
+ 			(adev->pm.rpm_mode == AMDGPU_RUNPM_BAMACO)) {
+ 		amdgpu_device_baco_exit(drm_dev);
 diff --git a/drivers/gpu/vga/vga_switcheroo.c b/drivers/gpu/vga/vga_switcheroo.c
 index 365e6ddbe90f..03be6dc94709 100644
 --- a/drivers/gpu/vga/vga_switcheroo.c
@@ -222,7 +276,7 @@ index 9cc447da9475..c18bdf0ee90e 100644
  
  	/*
 diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 85ced6958d6d..41da2df33fde 100644
+index 85ced6958d6d..8fb46e1523bb 100644
 --- a/drivers/pci/pci.c
 +++ b/drivers/pci/pci.c
 @@ -1512,7 +1512,8 @@ static void __pci_bus_set_current_state(struct pci_bus *bus, pci_power_t state,
@@ -265,7 +319,7 @@ index 85ced6958d6d..41da2df33fde 100644
  
  	return 0;
  }
-@@ -1609,25 +1615,57 @@ static int __pci_set_power_state(struct pci_dev *dev, pci_power_t state, bool lo
+@@ -1609,25 +1615,50 @@ static int __pci_set_power_state(struct pci_dev *dev, pci_power_t state, bool lo
  		return 0;
  
  	if (state == PCI_D3cold) {
@@ -285,27 +339,20 @@ index 85ced6958d6d..41da2df33fde 100644
  
 -		if (pci_platform_power_transition(dev, PCI_D3cold))
 -			return error;
-+		pci_info(dev, "Going to D3cold via platform\n");
 +		error = pci_platform_power_transition(dev, PCI_D3cold);
-+		if (error && dev->current_state != PCI_D3cold) {
-+			pci_info(dev, "Going to D3cold via platform failed %d. Trying native.\n", error);
-+			
-+			error = pci_set_low_power_state(dev, PCI_D3cold, locked);
-+			if (error || dev->current_state != PCI_D3cold) {
-+				pci_info(dev, "Going to D3cold (native) failed (error: %d, current state: %s)\n", error, pci_power_name(dev->current_state));
-+				// Failing to go from D0 -> D3hot can reenter D0 which is very bad because the device is probably very sad
-+
-+				if (dev->current_state != PCI_D3hot) {
-+					error = pci_set_low_power_state(dev, PCI_D3hot, locked);
-+					if (error) {
-+						pci_info(dev, "Failed to reenter D3hot after failed D3Cold entry. %d\n", error);
-+						return error;
-+					}
-+				}
-+			}
++		if (error && dev->current_state < PCI_D3hot) {
++			pci_info(dev, "Going to D3cold via platform went badly wrong, card entered higher power state. error %d, state %s.\n", error, pci_power_name(dev->current_state));
 +		}
 +
 +		acpi_pci_refresh_power_state(dev); // failure is ok
++
++		if (dev->current_state < PCI_D3hot) {
++			error = pci_set_low_power_state(dev, PCI_D3hot, locked);
++			if (error || dev->current_state != PCI_D3hot) {
++				pci_info(dev, "Going to D3hot (native) failed (error: %d, current state: %s)\n", error, pci_power_name(dev->current_state));
++				return error;
++			}
++		}
  
  		/* Powering off a bridge may power off the whole hierarchy */
  		if (dev->current_state == PCI_D3cold)
@@ -327,7 +374,7 @@ index 85ced6958d6d..41da2df33fde 100644
  	return 0;
  }
  
-@@ -2664,6 +2702,7 @@ EXPORT_SYMBOL(pci_wake_from_d3);
+@@ -2664,6 +2695,7 @@ EXPORT_SYMBOL(pci_wake_from_d3);
  static pci_power_t pci_target_state(struct pci_dev *dev, bool wakeup)
  {
  	if (platform_pci_power_manageable(dev)) {
@@ -335,7 +382,7 @@ index 85ced6958d6d..41da2df33fde 100644
  		/*
  		 * Call the platform to find the target state for the device.
  		 */
-@@ -2692,6 +2731,7 @@ static pci_power_t pci_target_state(struct pci_dev *dev, bool wakeup)
+@@ -2692,6 +2724,7 @@ static pci_power_t pci_target_state(struct pci_dev *dev, bool wakeup)
  		return PCI_D3cold;
  	else if (!dev->pm_cap)
  		return PCI_D0;
@@ -343,7 +390,7 @@ index 85ced6958d6d..41da2df33fde 100644
  
  	if (wakeup && dev->pme_support) {
  		pci_power_t state = PCI_D3hot;
-@@ -3056,15 +3096,16 @@ static int pci_dev_check_d3cold(struct pci_dev *dev, void *data)
+@@ -3056,15 +3089,16 @@ static int pci_dev_check_d3cold(struct pci_dev *dev, void *data)
  {
  	bool *d3cold_ok = data;
  
