@@ -115,6 +115,8 @@ in
     ];
 
     lun.persistence.enable = true;
+    zramSwap.enable = true;
+    zramSwap.memoryPercent = 30;
     fileSystems = {
       "/" = {
         device = "tmpfs";
