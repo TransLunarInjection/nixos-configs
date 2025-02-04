@@ -42,6 +42,8 @@ in
       "pcie_ports=native" # handle everything in linux even if uefi wants to
       "pcie_port_pm=force" # force pm on even if not wanted by platform
       "pcie_aspm=force" # force link state
+      "nosplash"
+      "preempt=full"
 
       # FIXME: turn back on once arc multigpu doesn't fall over
       # workaround for https://gitlab.freedesktop.org/drm/intel/-/issues/7306
