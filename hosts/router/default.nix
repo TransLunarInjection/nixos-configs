@@ -75,9 +75,10 @@ in
     sconfig.machineId = "62df49c6dd7668e60028ed7c7f8b009d";
     system.stateVersion = "22.11";
 
-    boot.kernelParams = [ ];
-    boot.kernelPackages = lib.mkForce pkgs.linuxPackages;
-    boot.initrd.kernelModules = [ ];
+    boot.kernelParams = [
+      "iommu=pt"
+    ];
+    boot.kernelPackages = lib.mkForce pkgs.linuxPackages_6_6; # Trying 6_6 due to i40e not coming up
 
     # lib.mkForce is important here, want to make sure service modules
     # don't open ports to the outside world
