@@ -335,6 +335,17 @@ in
     ];
 
     services.lldpd.enable = true;
+    services.lldpd.extraArgs = [
+      "-M"
+      "4" # class 4 (Network Connectivity)
+      "-S"
+      name
+      "-m" # LLDP Management address is our V4 internal IP
+      lanV4Self
+      "-klesfc" # Support non-LLDP protocols
+      "-I"
+      lanBridge # Only run on LAN
+    ];
     lun.home-assistant.enable = true;
     services.plex = {
       enable = true;
