@@ -380,20 +380,27 @@ in
       ${bash}/bin/bash -c "bash ${lib.getExe nixos-cake} || true"
     '';
 
-    boot.kernelModules = [ "tcp_bbr" "sch_cake" ];
+    boot.initrd.kernelModules = [
+      "i40e"
+      "kvm-amd"
+    ];
+    boot.kernelModules = [
+      "tcp_bbr"
+      "sch_cake"
+    ];
     boot.kernel.sysctl = {
       "net.ipv4.tcp_congestion_control" = lib.mkForce "cubic"; # Not using BBR for router because want cake
       "net.core.default_qdisc" = lib.mkForce "cake"; # FIXME doesn't apply to all nics, set too late in boot?
       "net.netfilter.nf_conntrack_buckets" = 65536;
       "net.netfilter.nf_conntrack_tcp_timeout_established" = 7200; # 2 hours
       # "net.netfilter.nf_conntrack_max" = 1048576;
-      "net.netfilter.nf_conntrack_generic_timeout" = 300;
-      "net.netfilter.nf_conntrack_tcp_timeout_time_wait" = 90;
-      "net.netfilter.nf_conntrack_tcp_timeout_fin_wait" = 90;
-      "net.netfilter.nf_conntrack_tcp_timeout_unacknowledged" = 90;
-      "net.netfilter.nf_conntrack_tcp_timeout_syn_sent" = 90;
-      "net.netfilter.nf_conntrack_icmp_timeout" = 45;
-      "net.netfilter.nf_conntrack_icmpv6_timeout" = 45;
+      "net.netfilter.nf_conntrack_generic_timeout" = 310;
+      "net.netfilter.nf_conntrack_tcp_timeout_time_wait" = 100;
+      "net.netfilter.nf_conntrack_tcp_timeout_fin_wait" = 100;
+      "net.netfilter.nf_conntrack_tcp_timeout_unacknowledged" = 100;
+      "net.netfilter.nf_conntrack_tcp_timeout_syn_sent" = 100;
+      "net.netfilter.nf_conntrack_icmp_timeout" = 50;
+      "net.netfilter.nf_conntrack_icmpv6_timeout" = 50;
     };
 
     hardware.cpu.amd.updateMicrocode = true;
