@@ -170,6 +170,9 @@ in
             { Address = "${selfULA}/64"; }
             { Address = "${lanV4Self}/24"; }
           ];
+          linkConfig = {
+            MTUBytes = 9000;
+          };
           networkConfig = {
             DHCP = "no";
             Description = "LAN interface";
@@ -264,7 +267,7 @@ in
         dhcp-range = "${lanV4Subnet}.50,${lanV4Subnet}.254,24h";
         dhcp-option = [
           "option:router,${lanV4Self}"
-          "option:mtu,1500"
+          "option:mtu,9000"
         ];
         # static IPs:
         # dhcp-host = [
